@@ -1,0 +1,2 @@
+/home/mochashaa/Documents/MyProject/Chasoul-Project/project_aplikasi_sewasepeda/android/app/.cxx/Debug/u2o315g3/armeabi-v7a/CMakeFiles/edit_cache.dir
+/home/mochashaa/Documents/MyProject/Chasoul-Project/project_aplikasi_sewasepeda/android/app/.cxx/Debug/u2o315g3/armeabi-v7a/CMakeFiles/rebuild_cache.dir
