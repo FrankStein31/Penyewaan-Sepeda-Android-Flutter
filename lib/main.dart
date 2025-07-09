@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'auth/login.dart';
 import 'auth/register.dart';
+import 'auth/edit_profile.dart';
 import 'petugas/app/home.dart';
 import 'petugas/sidepages/product.dart';
 import 'petugas/sidepages/kategory.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/edit-profile': (context) => const EditProfileScreen(),
         '/home': (context) => const HomePage(),
         '/product': (context) => const ProductPage(),
         '/category': (context) => const KategoryPage(),
