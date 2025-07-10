@@ -47,41 +47,32 @@ class _ReportPageState extends State<ReportPage> {
   Future<void> fetchRentals() async {
     try {
       const storage = FlutterSecureStorage();
-      final username = await storage.read(key: 'username');
-      
-      if (username == null) {
+      final userId = await storage.read(key: 'userId');
+      if (userId == null) {
         setState(() {
           rentals = [];
           isLoading = false;
         });
         return;
       }
-
       final response = await http.get(
-        Uri.parse('${Config.baseUrl}/rentals'),
+        Uri.parse('${Config.baseUrl}/rentals/user/$userId'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
       );
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData['status'] == true) {
-          final allRentals = List<Map<String, dynamic>>.from(responseData['data']);
-          // Filter rentals for current user only
-          final userRentals = allRentals.where(
-            (rental) => rental['customer_name']?.toString().toLowerCase() == username.toLowerCase()
-          ).toList();
-          
           setState(() {
-            rentals = userRentals;
+            rentals = List<Map<String, dynamic>>.from(responseData['data']);
             isLoading = false;
           });
-
           // Check penalty status for each rental
-          for (var rental in userRentals) {
-            if (rental['penalty_amount'] != null && rental['penalty_amount'] > 0) {
+          for (var rental in rentals) {
+            if (rental['penalty_amount'] != null &&
+                rental['penalty_amount'] > 0) {
               await checkPenaltyStatus(rental['id']);
             }
           }
@@ -110,7 +101,8 @@ class _ReportPageState extends State<ReportPage> {
         final responseData = json.decode(response.body);
         if (responseData['status'] == true && responseData['data'] != null) {
           setState(() {
-            penaltyStatuses[rentalId] = responseData['data']['penalty_payment_status'];
+            penaltyStatuses[rentalId] =
+                responseData['data']['penalty_payment_status'];
           });
         }
       }
@@ -237,11 +229,13 @@ class _ReportPageState extends State<ReportPage> {
                                       : '';
 
                               // Menghitung total dari penalty_amount dan total_amount
-                              final penaltyAmount = rental['penalty_amount'] ?? 0;
+                              final penaltyAmount =
+                                  rental['penalty_amount'] ?? 0;
                               final totalAmount = rental['total_amount'] ?? 0;
                               final totalPayment = penaltyAmount + totalAmount;
-                              
-                              final amount = 'IDR ${NumberFormat('#,###').format(totalPayment)}';
+
+                              final amount =
+                                  'IDR ${NumberFormat('#,###').format(totalPayment)}';
 
                               final time = '${rental['rental_hours']} Jam';
 
@@ -249,8 +243,8 @@ class _ReportPageState extends State<ReportPage> {
                               String statusIcon;
                               if (rental['status'] == 'playing') {
                                 statusIcon = '🚲';
-                              } else if (rental['penalty_amount'] > 0 && 
-                                       penaltyStatuses[rental['id']] != 'paid') {
+                              } else if (rental['penalty_amount'] > 0 &&
+                                  penaltyStatuses[rental['id']] != 'paid') {
                                 statusIcon = 'Denda';
                               } else {
                                 statusIcon = '✅';
@@ -261,7 +255,8 @@ class _ReportPageState extends State<ReportPage> {
                                   final result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => DetailReportPage(rental: rental),
+                                      builder: (context) =>
+                                          DetailReportPage(rental: rental),
                                     ),
                                   );
                                   if (result == true) {
@@ -270,7 +265,7 @@ class _ReportPageState extends State<ReportPage> {
                                   }
                                 },
                                 child: _buildReportItem(
-                                  rental['customer_name'] ?? 'Unknown',
+                                  rental['product_name'] ?? 'Unknown',
                                   status,
                                   amount,
                                   time,
@@ -340,7 +335,8 @@ class _ReportPageState extends State<ReportPage> {
           ),
           emoji == 'Denda'
               ? Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.red[100],
                     borderRadius: BorderRadius.circular(8),

@@ -53,7 +53,7 @@ class _ReportPageState extends State<ReportPage> {
     for (var rental in rentals) {
       // Add user to unique users set
       uniqueUsers.add(rental['customer_name'] ?? '');
-      
+
       // Calculate total income (including penalties)
       income += (rental['total_amount'] ?? 0) + (rental['penalty_amount'] ?? 0);
     }
@@ -77,12 +77,17 @@ class _ReportPageState extends State<ReportPage> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData['status'] == true) {
-          List<Map<String, dynamic>> allRentals = List<Map<String, dynamic>>.from(responseData['data']);
+          List<Map<String, dynamic>> allRentals =
+              List<Map<String, dynamic>>.from(responseData['data']);
 
           // Filter rentals if date range is selected
           if (startDate != null && endDate != null) {
-            final startDateTime = DateTime(startDate!.year, startDate!.month, startDate!.day).toUtc();
-            final endDateTime = DateTime(endDate!.year, endDate!.month, endDate!.day, 23, 59, 59).toUtc();
+            final startDateTime =
+                DateTime(startDate!.year, startDate!.month, startDate!.day)
+                    .toUtc();
+            final endDateTime = DateTime(
+                    endDate!.year, endDate!.month, endDate!.day, 23, 59, 59)
+                .toUtc();
 
             debugPrint('📅 Filtering reports between:');
             debugPrint('Start: ${startDateTime.toIso8601String()}');
@@ -93,7 +98,8 @@ class _ReportPageState extends State<ReportPage> {
               bool isInRange = rentalStartTime.isAfter(startDateTime) &&
                   rentalStartTime.isBefore(endDateTime);
 
-              debugPrint('🔍 Report date ${rental['start_time']} in range: $isInRange');
+              debugPrint(
+                  '🔍 Report date ${rental['start_time']} in range: $isInRange');
 
               return isInRange;
             }).toList();
@@ -418,7 +424,7 @@ class _ReportPageState extends State<ReportPage> {
                               final time = '${rental['rental_hours']} Jam';
 
                               return _buildReportItem(
-                                rental['customer_name'] ?? 'Unknown',
+                                rental['product_name'] ?? 'Unknown',
                                 status,
                                 amount,
                                 time,

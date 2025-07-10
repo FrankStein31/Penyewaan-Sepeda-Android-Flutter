@@ -48,48 +48,53 @@ class _ActivityPageState extends State<ActivityPage> {
   Future<void> fetchRentals() async {
     try {
       String url = '${Config.baseUrl}/rentals';
-      
+
       // Log base URL request first
       debugPrint('🌐 Initial API Request URL: $url');
-      
+
       final response = await http.get(Uri.parse(url));
-      
+
       // Log the response status and headers
       debugPrint('📥 API Response Status: ${response.statusCode}');
       debugPrint('📝 API Response Headers: ${response.headers}');
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         List<dynamic> allRentals = data['data'];
-        
+
         // If date filter is active, filter the rentals locally
         if (startDate != null && endDate != null) {
           // Convert filter dates to UTC for comparison
-          final startDateTime = DateTime(startDate!.year, startDate!.month, startDate!.day).toUtc();
-          final endDateTime = DateTime(endDate!.year, endDate!.month, endDate!.day, 23, 59, 59).toUtc();
-          
+          final startDateTime =
+              DateTime(startDate!.year, startDate!.month, startDate!.day)
+                  .toUtc();
+          final endDateTime =
+              DateTime(endDate!.year, endDate!.month, endDate!.day, 23, 59, 59)
+                  .toUtc();
+
           debugPrint('📅 Filtering rentals between:');
           debugPrint('Start: ${startDateTime.toIso8601String()}');
           debugPrint('End: ${endDateTime.toIso8601String()}');
-          
+
           // Filter rentals based on start_time
           allRentals = allRentals.where((rental) {
             DateTime rentalStartTime = DateTime.parse(rental['start_time']);
-            bool isInRange = rentalStartTime.isAfter(startDateTime) && 
-                           rentalStartTime.isBefore(endDateTime);
-            
+            bool isInRange = rentalStartTime.isAfter(startDateTime) &&
+                rentalStartTime.isBefore(endDateTime);
+
             // Debug log for each rental's date comparison
-            debugPrint('🔍 Rental date ${rental['start_time']} in range: $isInRange');
-            
+            debugPrint(
+                '🔍 Rental date ${rental['start_time']} in range: $isInRange');
+
             return isInRange;
           }).toList();
         }
-        
+
         setState(() {
           rentals = allRentals;
           isLoading = false;
         });
-        
+
         debugPrint('📊 Number of rentals after filtering: ${rentals.length}');
       } else {
         // Log error response
@@ -309,11 +314,11 @@ class _ActivityPageState extends State<ActivityPage> {
   }
 
   Widget _buildActivityItem(Map<String, dynamic> rental) {
-    final name = rental['customer_name'] ?? '';
+    final name = rental['product_name'] ?? '';
     final price = 'IDR ${rental['total_amount']}';
     final time = '${rental['remaining_minutes']} Min';
     final status = rental['status'] ?? 'Berlangsung';
-    
+
     return GestureDetector(
       onTap: () {
         Navigator.push(

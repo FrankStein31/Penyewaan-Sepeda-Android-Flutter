@@ -122,13 +122,15 @@ class _ProductPageState extends State<ProductPage> {
                             if (!imageUrl.startsWith('http')) {
                               // Hapus 'uploads/products/' jika sudah ada di path
                               if (imageUrl.startsWith('uploads/products/')) {
-                                imageUrl = imageUrl.replaceFirst('uploads/products/', '');
+                                imageUrl = imageUrl.replaceFirst(
+                                    'uploads/products/', '');
                               }
-                              imageUrl = '${Config.baseUrl}/uploads/products/$imageUrl';
+                              imageUrl =
+                                  '${Config.baseUrl}/uploads/products/$imageUrl';
                             }
                             print('Image URL: $imageUrl'); // Debug URL
                           }
-                          
+
                           return _buildProductCard(
                             context,
                             product['name'],
@@ -168,35 +170,35 @@ class _ProductPageState extends State<ProductPage> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: imageUrl.isNotEmpty
-                ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: const Color(0xFF8B5CF6),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      print('Error loading image: $error');
-                      return const Icon(
-                        Icons.pedal_bike,
-                        color: Color(0xFF8B5CF6),
-                        size: 40,
-                      );
-                    },
-                  )
-                : const Icon(
-                    Icons.pedal_bike,
-                    color: Color(0xFF8B5CF6),
-                    size: 40,
-                  ),
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                            color: const Color(0xFF8B5CF6),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Error loading image: $error');
+                        return const Icon(
+                          Icons.pedal_bike,
+                          color: Color(0xFF8B5CF6),
+                          size: 40,
+                        );
+                      },
+                    )
+                  : const Icon(
+                      Icons.pedal_bike,
+                      color: Color(0xFF8B5CF6),
+                      size: 40,
+                    ),
             ),
           ),
           const SizedBox(width: 12),
@@ -243,7 +245,8 @@ class _ProductPageState extends State<ProductPage> {
               IconButton(
                 icon: const Icon(Icons.edit_outlined, color: Color(0xFF8B5CF6)),
                 onPressed: () async {
-                  final product = products.firstWhere((p) => p['id'] == productId);
+                  final product =
+                      products.firstWhere((p) => p['id'] == productId);
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -270,8 +273,6 @@ class _ProductPageState extends State<ProductPage> {
       ),
     );
   }
-
-
 
   void _showDeleteConfirmation(BuildContext context, int productId) {
     showDialog(
