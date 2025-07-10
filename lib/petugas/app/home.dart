@@ -139,7 +139,11 @@ class HomeContent extends StatelessWidget {
   Widget _buildProductItem(BuildContext context, Map<String, dynamic> product) {
     final name = product['name'] ?? 'Unknown';
     final price = formatRupiah(product['price']);
-    final stock = product['stock']?.toString() ?? '0';
+    final totalStock = product['total_stock']?.toString() ?? '0';
+    final stockAvailable = product['stock_available']?.toString() ?? '0';
+    final stockRented = product['disewa']?.toString() ?? '0';
+    final stockDamaged = product['rusak']?.toString() ?? '0';
+    final stockLost = product['hilang']?.toString() ?? '0';
     final imageUrl = product['image'] ?? '';
 
     return InkWell(
@@ -151,7 +155,7 @@ class HomeContent extends StatelessWidget {
               productId: product['id']?.toString() ?? '',
               name: name,
               price: (product['price'] as num?)?.toDouble() ?? 0.0,
-              stock: (product['stock'] as num?)?.toInt() ?? 0,
+              stock: (product['total_stock'] as num?)?.toInt() ?? 0,
               imageUrl: imageUrl,
             ),
           ),
@@ -207,23 +211,24 @@ class HomeContent extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _buildStockInfo('Total', totalStock, Colors.purple),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Stock: $stock',
-                          style: const TextStyle(
-                            color: Color(0xFF8B5CF6),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
+                      _buildStockInfo('Tersedia', stockAvailable, Colors.green),
+                      const SizedBox(width: 8),
+                      _buildStockInfo('Disewa', stockRented, Colors.blue),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      _buildStockInfo('Rusak', stockDamaged, Colors.orange),
+                      const SizedBox(width: 8),
+                      _buildStockInfo('Hilang', stockLost, Colors.red),
                     ],
                   ),
                 ],
@@ -232,6 +237,36 @@ class HomeContent extends StatelessWidget {
             const Icon(Icons.chevron_right),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStockInfo(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

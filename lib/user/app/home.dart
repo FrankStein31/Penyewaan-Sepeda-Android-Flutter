@@ -99,7 +99,6 @@ class _UserHomePageState extends State<UserHomePage> {
                 ],
               ),
             ),
-           
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
@@ -259,7 +258,8 @@ class HomeContent extends StatelessWidget {
                             builder: (BuildContext context) {
                               return AlertDialog(
                                 title: const Text('Logout'),
-                                content: const Text('Are you sure you want to logout?'),
+                                content: const Text(
+                                    'Are you sure you want to logout?'),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(context),
@@ -267,7 +267,8 @@ class HomeContent extends StatelessWidget {
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      Navigator.of(context).pushNamedAndRemoveUntil(
+                                      Navigator.of(context)
+                                          .pushNamedAndRemoveUntil(
                                         '/login',
                                         (Route<dynamic> route) => false,
                                       );
@@ -359,7 +360,8 @@ class HomeContent extends StatelessWidget {
                                           ),
                                           content: Column(
                                             mainAxisSize: MainAxisSize.min,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               const Text(
                                                 'Silahkan memilih sepeda yang ingin kamu sewa',
@@ -367,10 +369,12 @@ class HomeContent extends StatelessWidget {
                                               ),
                                               const SizedBox(height: 16),
                                               Container(
-                                                padding: const EdgeInsets.all(12),
+                                                padding:
+                                                    const EdgeInsets.all(12),
                                                 decoration: BoxDecoration(
                                                   color: Colors.red[50],
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
                                                 child: Row(
                                                   children: [
@@ -384,8 +388,10 @@ class HomeContent extends StatelessWidget {
                                                       child: Text(
                                                         'Keterlambatan akan dikenakan denda Rp 5.000 per 5 menit',
                                                         style: TextStyle(
-                                                          color: Colors.red[700],
-                                                          fontWeight: FontWeight.w500,
+                                                          color:
+                                                              Colors.red[700],
+                                                          fontWeight:
+                                                              FontWeight.w500,
                                                         ),
                                                       ),
                                                     ),
@@ -401,7 +407,8 @@ class HomeContent extends StatelessWidget {
                                               },
                                               child: const Text(
                                                 'Batal',
-                                                style: TextStyle(color: Colors.grey),
+                                                style: TextStyle(
+                                                    color: Colors.grey),
                                               ),
                                             ),
                                             ElevatedButton(
@@ -410,7 +417,8 @@ class HomeContent extends StatelessWidget {
                                                 // TODO: Navigate to bike selection
                                               },
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(0xFF8B5CF6),
+                                                backgroundColor:
+                                                    const Color(0xFF8B5CF6),
                                               ),
                                               child: const Text('Pilih Sepeda'),
                                             ),
@@ -493,7 +501,8 @@ class HomeContent extends StatelessWidget {
                                       product['name'] ?? 'Unknown',
                                       formatRupiah(product['price']),
                                       product['category_name'] ?? 'No Category',
-                                      product['stock']?.toString() ?? '0',
+                                      product['stock_available']?.toString() ??
+                                          '0',
                                       productId: product['id'] ?? 0,
                                       imageUrl: product['image'],
                                     );
@@ -515,14 +524,9 @@ class HomeContent extends StatelessWidget {
     );
   }
 
-  Widget _buildProductItem(
-      BuildContext context,
-      String name,
-      String price,
-      String category,
-      String stock,
-      {required int productId,
-      String? imageUrl}) {
+  Widget _buildProductItem(BuildContext context, String name, String price,
+      String category, String stock,
+      {required int productId, String? imageUrl}) {
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -583,18 +587,39 @@ class HomeContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$price • Stock: $stock',
+                    price,
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,
                     ),
                   ),
-                  Text(
-                    category,
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 12,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        category,
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Tersedia: $stock',
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

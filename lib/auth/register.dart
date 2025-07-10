@@ -39,7 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate() && _ktpImage != null) {
-      setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
       print('Debug - Mencoba register ke: ${Config.baseUrl}/register');
       var uri = Uri.parse('${Config.baseUrl}/register');
@@ -79,23 +79,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
         final String message = responseData['message'] ?? 'Terjadi kesalahan';
 
         if (status) {
-          if (!mounted) return;
+        if (!mounted) return;
           Navigator.pushReplacementNamed(context, '/login');
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(message)));
-        } else {
-          if (!mounted) return;
+      } else {
+        if (!mounted) return;
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(message)));
-        }
-      } catch (e) {
+      }
+    } catch (e) {
         print('Debug - Error: $e');
-        if (!mounted) return;
+      if (!mounted) return;
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
         }
       }
     }
@@ -110,42 +110,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
               key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 40),
-                  const Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 40),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 40),
-                  const Text(
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 40),
+                const Text(
                     'Username',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 4),
+                ),
+                const SizedBox(height: 4),
                   TextFormField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
                       hintText: 'Masukkan username',
-                      hintStyle: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 16,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 16,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 16,
                       ),
@@ -156,31 +156,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
                       return null;
                     },
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Password',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Password',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
+                ),
+                const SizedBox(height: 4),
                   TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
                       hintText: 'Masukkan password',
-                      hintStyle: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 16,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 16,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 16,
@@ -293,7 +293,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 16,
                       ),
@@ -336,58 +336,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.file(_ktpImage!, height: 200),
-                    ),
+                ),
                   ],
                   const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C63FF),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _register,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6C63FF),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Register',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Sudah punya akun? ',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Login',
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                            'Register',
                           style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            color: Color(0xFF6C63FF),
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                        'Sudah punya akun? ',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                          Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          color: Color(0xFF6C63FF),
+                        ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
                 ],
               ),
             ),

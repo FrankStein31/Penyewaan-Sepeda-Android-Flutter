@@ -15,6 +15,236 @@ class _ProductStatusPageState extends State<ProductStatusPage> {
   String _selectedStatus = 'semua';
   bool _isLoading = true;
 
+  // Tambah fungsi untuk update status
+  Future<void> _updateProductStatus(
+      int productId, String status, int quantity) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${Config.baseUrl}/products/$productId/status'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'status': status,
+          'quantity': quantity,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Status produk berhasil diupdate')),
+        );
+        _loadProducts();
+      } else {
+        final error = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error['message'] ?? 'Gagal update status')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  // Dialog untuk update status
+  Future<void> _showUpdateStatusDialog(Map<String, dynamic> product) async {
+    String selectedStatus = product['status'];
+    int quantity = 0;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Status Produk'),
+        content: StatefulBuilder(
+          builder: (context, setState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                value: selectedStatus,
+                items: const [
+                  DropdownMenuItem(value: 'tersedia', child: Text('Tersedia')),
+                  DropdownMenuItem(value: 'disewa', child: Text('Disewa')),
+                  DropdownMenuItem(value: 'rusak', child: Text('Rusak')),
+                  DropdownMenuItem(value: 'hilang', child: Text('Hilang')),
+                ],
+                onChanged: (value) {
+                  setState(() => selectedStatus = value!);
+                },
+                decoration: const InputDecoration(labelText: 'Status'),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Jumlah',
+                  hintText: 'Masukkan jumlah unit (0 atau lebih)',
+                ),
+                keyboardType: TextInputType.number,
+                initialValue: '0',
+                onChanged: (value) {
+                  quantity = int.tryParse(value) ?? 0;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (quantity >= 0) {
+                _updateProductStatus(product['id'], selectedStatus, quantity);
+                Navigator.pop(context);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Jumlah tidak boleh negatif')),
+                );
+              }
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Update card widget untuk menampilkan detail stok
+  Widget _buildProductCard(Map<String, dynamic> product) {
+    final totalStock = product['total_stock'] ?? 0;
+    final stockAvailable = product['stock_available'] ?? 0;
+    final stockRented = product['disewa'] ?? 0;
+    final stockDamaged = product['rusak'] ?? 0;
+    final stockLost = product['hilang'] ?? 0;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: InkWell(
+        onTap: () => _showUpdateStatusDialog(product),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (product['image'] != null)
+                    Image.network(
+                      '${Config.baseUrl}/${product['image']}',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    const Icon(Icons.pedal_bike),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product['name'],
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text('Kategori: ${product['category_name']}'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Detail Stok:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStockInfo('Total', totalStock, Colors.purple),
+                  _buildStockInfo('Tersedia', stockAvailable, Colors.green),
+                  _buildStockInfo('Disewa', stockRented, Colors.blue),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStockInfo('Rusak', stockDamaged, Colors.orange),
+                  _buildStockInfo('Hilang', stockLost, Colors.red),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Status Produk',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(product['status']),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      product['status'].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStockInfo(String label, int value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value.toString(),
+            style: TextStyle(
+              color: color,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -108,65 +338,7 @@ class _ProductStatusPageState extends State<ProductStatusPage> {
                       itemCount: _getFilteredProducts().length,
                       itemBuilder: (context, index) {
                         final product = _getFilteredProducts()[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: ListTile(
-                            leading: product['image'] != null
-                                ? Image.network(
-                                    '${Config.baseUrl}/${product['image']}',
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                  )
-                                : const Icon(Icons.pedal_bike),
-                            title: Text(product['name']),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Kategori: ${product['category_name']}'),
-                                Text('Stok: ${product['stock']}'),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            _getStatusColor(product['status']),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        product['status'].toUpperCase(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                    if (product['active_rentals'] > 0) ...[
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Sedang disewa: ${product['active_rentals']}',
-                                        style: const TextStyle(
-                                          color: Colors.blue,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ],
-                            ),
-                            onTap: () {
-                              // TODO: Tampilkan detail produk dan riwayat penyewaan
-                            },
-                          ),
-                        );
+                        return _buildProductCard(product);
                       },
                     ),
                   ),

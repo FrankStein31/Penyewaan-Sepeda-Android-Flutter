@@ -233,7 +233,7 @@ class _ReportPageState extends State<ReportPage> {
                                   rental['penalty_amount'] ?? 0;
                               final totalAmount = rental['total_amount'] ?? 0;
                               final totalPayment = penaltyAmount + totalAmount;
-
+                              
                               final amount =
                                   'IDR ${NumberFormat('#,###').format(totalPayment)}';
 
@@ -243,8 +243,8 @@ class _ReportPageState extends State<ReportPage> {
                               String statusIcon;
                               if (rental['status'] == 'playing') {
                                 statusIcon = '🚲';
-                              } else if (rental['penalty_amount'] > 0 &&
-                                  penaltyStatuses[rental['id']] != 'paid') {
+                              } else if (rental['penalty_amount'] > 0 && 
+                                       penaltyStatuses[rental['id']] != 'paid') {
                                 statusIcon = 'Denda';
                               } else {
                                 statusIcon = '✅';
