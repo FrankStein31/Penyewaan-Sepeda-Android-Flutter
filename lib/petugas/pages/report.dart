@@ -470,6 +470,8 @@ class _ReportPageState extends State<ReportPage> {
                                   rental['payment_status'] ?? '-';
                               final penaltyStatus =
                                   rental['penalty_payment_status'] ?? '-';
+                              final penaltyAmount =
+                                  rental['penalty_amount'] ?? 0;
 
                               return GestureDetector(
                                 onTap: () async {

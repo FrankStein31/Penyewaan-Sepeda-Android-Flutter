@@ -326,6 +326,7 @@ class _ActivityPageState extends State<ActivityPage> {
     final penalty = lateMinutes * 1000;
     final paymentStatus = rental['payment_status'] ?? '-';
     final penaltyStatus = rental['penalty_payment_status'] ?? '-';
+    final penaltyAmount = rental['penalty_amount'] ?? 0;
 
     return GestureDetector(
       onTap: () {
@@ -442,27 +443,43 @@ class _ActivityPageState extends State<ActivityPage> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: penaltyStatus == 'paid'
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    penaltyStatus == 'paid'
-                        ? 'Denda Lunas'
-                        : 'Denda Belum Lunas',
-                    style: TextStyle(
-                      color: penaltyStatus == 'paid'
-                          ? Colors.green
-                          : Colors.orange,
-                      fontSize: 11,
-                    ),
-                  ),
-                ),
+                penaltyAmount == 0
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Tidak Ada Denda',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 11,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: penaltyStatus == 'paid'
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          penaltyStatus == 'paid'
+                              ? 'Denda Lunas'
+                              : 'Denda Belum Lunas',
+                          style: TextStyle(
+                            color: penaltyStatus == 'paid'
+                                ? Colors.green
+                                : Colors.orange,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
               ],
             ),
           ],

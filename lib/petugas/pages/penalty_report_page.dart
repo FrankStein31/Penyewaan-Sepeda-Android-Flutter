@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class PenaltyReportPage extends StatefulWidget {
   const PenaltyReportPage({super.key});
@@ -17,7 +19,9 @@ class _PenaltyReportPageState extends State<PenaltyReportPage> {
   @override
   void initState() {
     super.initState();
-    _loadReports();
+    initializeDateFormatting('id_ID', null).then((_) {
+      _loadReports();
+    });
   }
 
   Future<void> _loadReports() async {
@@ -201,7 +205,11 @@ class _PenaltyReportPageState extends State<PenaltyReportPage> {
                                 if (report['description'] != null)
                                   Text('Keterangan: ${report['description']}'),
                                 Text(
-                                  'Tanggal: ${report['created_at'].substring(0, 16)}',
+                                  'Tanggal: ' +
+                                      DateFormat('dd MMM yyyy, HH:mm', 'id_ID')
+                                          .format(DateTime.parse(
+                                                  report['created_at'])
+                                              .add(const Duration(hours: 7))),
                                 ),
                               ],
                             ),

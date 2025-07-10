@@ -389,6 +389,8 @@ class _ReportPageState extends State<ReportPage> {
                               final penaltyStatus =
                                   rental['penalty_payment_status'] ?? '-';
                               final rawStatus = rental['status'] ?? '';
+                              final paymentStatus =
+                                  rental['payment_status'] ?? '-';
 
                               return GestureDetector(
                                 onTap: () async {
@@ -411,6 +413,8 @@ class _ReportPageState extends State<ReportPage> {
                                   rental['status'] == 'playing' ? '🚲' : '✅',
                                   penaltyStatus,
                                   rawStatus,
+                                  paymentStatus,
+                                  rental['penalty_amount'] ?? 0,
                                 ),
                               );
                             },
@@ -423,11 +427,20 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-  Widget _buildReportItem(String name, String status, String price, String time,
-      String emoji, String penaltyStatus, String rawStatus) {
+  Widget _buildReportItem(
+      String name,
+      String status,
+      String price,
+      String time,
+      String emoji,
+      String penaltyStatus,
+      String rawStatus,
+      String paymentStatus,
+      num penaltyAmount) {
     final isPenaltyPaid = penaltyStatus == 'paid';
+    final isSewaPaid = paymentStatus == 'paid';
     debugPrint(
-        'report.dart | penalty_payment_status: ${penaltyStatus} | isPenaltyPaid: ${isPenaltyPaid}');
+        'report.dart | penalty_payment_status: ${penaltyStatus} | isPenaltyPaid: ${isPenaltyPaid} | payment_status: ${paymentStatus} | isSewaPaid: ${isSewaPaid}');
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -455,6 +468,49 @@ class _ReportPageState extends State<ReportPage> {
                   color: Colors.grey,
                 ),
               ),
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isSewaPaid
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      isSewaPaid ? 'Sewa Lunas' : 'Sewa Belum Lunas',
+                      style: TextStyle(
+                        color: isSewaPaid ? Colors.green : Colors.orange,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  if (penaltyAmount > 0) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isPenaltyPaid
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isPenaltyPaid ? 'Denda Lunas' : 'Denda Belum Lunas',
+                        style: TextStyle(
+                          color: isPenaltyPaid ? Colors.green : Colors.orange,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
           Column(
@@ -472,27 +528,6 @@ class _ReportPageState extends State<ReportPage> {
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isPenaltyPaid
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  isPenaltyPaid ? 'Denda Lunas' : 'Denda Belum Lunas',
-                  style: TextStyle(
-                    color: isPenaltyPaid ? Colors.green : Colors.orange,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
                 ),
               ),
             ],

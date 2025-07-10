@@ -73,6 +73,31 @@ class _DetailReportPageState extends State<DetailReportPage> {
   Future<void> _createPenaltyPayment() async {
     if (isProcessingPayment) return; // Prevent double tap
 
+    // Cek jika denda sudah dibayar
+    if ((widget.rental['penalty_payment_status'] ?? '').toString() == 'paid') {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Info'),
+              content: const Text('Denda sudah dibayar!'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF8B5CF6),
+                  ),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+      return;
+    }
+
     try {
       // Check if user data is available
       if (userId == null || userName == null) {
@@ -153,7 +178,45 @@ class _DetailReportPageState extends State<DetailReportPage> {
         }
       } else {
         final errorData = json.decode(response.body);
-        throw Exception(errorData['message'] ?? 'Gagal membuat pembayaran');
+        // Tambahkan pengecekan pesan error dari backend
+        if (errorData['message'] != null &&
+            errorData['message']
+                .toString()
+                .toLowerCase()
+                .contains('denda sudah dibayar')) {
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Info'),
+                  content: const Text('Denda sudah dibayar!'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF8B5CF6),
+                      ),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+          setState(() => isProcessingPayment = false);
+          return;
+        }
+        // Jangan throw Exception jika error denda sudah dibayar
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content:
+                    Text(errorData['message'] ?? 'Gagal membuat pembayaran')),
+          );
+        }
+        setState(() => isProcessingPayment = false);
+        return;
       }
     } catch (e) {
       debugPrint('Error creating payment: $e');

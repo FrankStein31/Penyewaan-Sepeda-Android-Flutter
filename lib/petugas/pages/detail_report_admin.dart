@@ -182,7 +182,12 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
             ),
             const Divider(height: 32),
             _buildRow('Biaya Sewa', total),
-            _buildRow('Denda Terlambat', penalty, color: Colors.orange),
+            _buildRow(
+                'Denda Terlambat',
+                penalty == 0
+                    ? 'Tidak Ada Denda'
+                    : 'IDR ' + NumberFormat('#,###').format(penalty),
+                color: Colors.orange),
             _buildRow('Denda Rusak', damage, color: Colors.red),
             _buildRow('Denda Hilang', lost, color: Colors.purple),
             const Divider(height: 32),
@@ -246,7 +251,8 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
     );
   }
 
-  Widget _buildRow(String label, num value, {Color? color, bool bold = false}) {
+  Widget _buildRow(String label, dynamic value,
+      {Color? color, bool bold = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -256,10 +262,15 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
               style: TextStyle(
                   color: color,
                   fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
-          Text('IDR ${NumberFormat('#,###').format(value)}',
-              style: TextStyle(
-                  color: color,
-                  fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+          value is String
+              ? Text(value,
+                  style: TextStyle(
+                      color: color,
+                      fontWeight: bold ? FontWeight.bold : FontWeight.normal))
+              : Text('IDR ${NumberFormat('#,###').format(value)}',
+                  style: TextStyle(
+                      color: color,
+                      fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
         ],
       ),
     );
