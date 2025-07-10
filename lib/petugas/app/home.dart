@@ -10,6 +10,7 @@ import '../pages/profile.dart';
 import '../../config.dart';
 import 'detail.dart';
 import 'product_detail.dart';
+import '../app/drawer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -69,108 +70,14 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xFF8B5CF6),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    'Management Menu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Kelola konten aplikasi',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.pedal_bike),
-              title: const Text('Management Product'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/product');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.category),
-              title: const Text('Management Category'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/category');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                // Add navigation logic here
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                'Logout',
-                style: TextStyle(
-                  color: Colors.red,
-                ),
-              ),
-              onTap: () {
-                // Close drawer
-                Navigator.pop(context);
-                // Show confirmation dialog
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            // Langsung navigate ke login tanpa menghapus storage
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              '/login',
-                              (Route<dynamic> route) => false,
-                            );
-                          },
-                          child: const Text(
-                            'Logout',
-                            style: TextStyle(
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
+      drawer: AdminDrawer(
+        username: userData != null ? userData!['name'] ?? 'Admin' : 'Admin',
+        onLogout: () {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/login',
+            (Route<dynamic> route) => false,
+          );
+        },
       ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
@@ -232,7 +139,11 @@ class HomeContent extends StatelessWidget {
   Widget _buildProductItem(BuildContext context, Map<String, dynamic> product) {
     final name = product['name'] ?? 'Unknown';
     final price = formatRupiah(product['price']);
-    final stock = product['stock']?.toString() ?? '0';
+    final totalStock = product['total_stock']?.toString() ?? '0';
+    final stockAvailable = product['stock_available']?.toString() ?? '0';
+    final stockRented = product['disewa']?.toString() ?? '0';
+    final stockDamaged = product['rusak']?.toString() ?? '0';
+    final stockLost = product['hilang']?.toString() ?? '0';
     final imageUrl = product['image'] ?? '';
 
     return InkWell(
@@ -244,7 +155,7 @@ class HomeContent extends StatelessWidget {
               productId: product['id']?.toString() ?? '',
               name: name,
               price: (product['price'] as num?)?.toDouble() ?? 0.0,
-              stock: (product['stock'] as num?)?.toInt() ?? 0,
+              stock: (product['total_stock'] as num?)?.toInt() ?? 0,
               imageUrl: imageUrl,
             ),
           ),
@@ -267,9 +178,9 @@ class HomeContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
                   image: NetworkImage(
-                    imageUrl.isNotEmpty 
-                      ? '${Config.baseUrl}/$imageUrl'
-                      : 'https://via.placeholder.com/60',
+                    imageUrl.isNotEmpty
+                        ? '${Config.baseUrl}/$imageUrl'
+                        : 'https://via.placeholder.com/60',
                   ),
                   fit: BoxFit.cover,
                 ),
@@ -300,22 +211,24 @@ class HomeContent extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _buildStockInfo('Total', totalStock, Colors.purple),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Stock: $stock',
-                          style: const TextStyle(
-                            color: Color(0xFF8B5CF6),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
+                      _buildStockInfo('Tersedia', stockAvailable, Colors.green),
+                      const SizedBox(width: 8),
+                      _buildStockInfo('Disewa', stockRented, Colors.blue),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      _buildStockInfo('Rusak', stockDamaged, Colors.orange),
+                      const SizedBox(width: 8),
+                      _buildStockInfo('Hilang', stockLost, Colors.red),
                     ],
                   ),
                 ],
@@ -324,6 +237,36 @@ class HomeContent extends StatelessWidget {
             const Icon(Icons.chevron_right),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStockInfo(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -529,6 +472,4 @@ class HomeContent extends StatelessWidget {
       ),
     );
   }
-
-
 }

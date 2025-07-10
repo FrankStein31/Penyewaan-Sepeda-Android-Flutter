@@ -48,48 +48,53 @@ class _ActivityPageState extends State<ActivityPage> {
   Future<void> fetchRentals() async {
     try {
       String url = '${Config.baseUrl}/rentals';
-      
+
       // Log base URL request first
       debugPrint('🌐 Initial API Request URL: $url');
-      
+
       final response = await http.get(Uri.parse(url));
-      
+
       // Log the response status and headers
       debugPrint('📥 API Response Status: ${response.statusCode}');
       debugPrint('📝 API Response Headers: ${response.headers}');
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         List<dynamic> allRentals = data['data'];
-        
+
         // If date filter is active, filter the rentals locally
         if (startDate != null && endDate != null) {
           // Convert filter dates to UTC for comparison
-          final startDateTime = DateTime(startDate!.year, startDate!.month, startDate!.day).toUtc();
-          final endDateTime = DateTime(endDate!.year, endDate!.month, endDate!.day, 23, 59, 59).toUtc();
-          
+          final startDateTime =
+              DateTime(startDate!.year, startDate!.month, startDate!.day)
+                  .toUtc();
+          final endDateTime =
+              DateTime(endDate!.year, endDate!.month, endDate!.day, 23, 59, 59)
+                  .toUtc();
+
           debugPrint('📅 Filtering rentals between:');
           debugPrint('Start: ${startDateTime.toIso8601String()}');
           debugPrint('End: ${endDateTime.toIso8601String()}');
-          
+
           // Filter rentals based on start_time
           allRentals = allRentals.where((rental) {
             DateTime rentalStartTime = DateTime.parse(rental['start_time']);
-            bool isInRange = rentalStartTime.isAfter(startDateTime) && 
-                           rentalStartTime.isBefore(endDateTime);
-            
+            bool isInRange = rentalStartTime.isAfter(startDateTime) &&
+                rentalStartTime.isBefore(endDateTime);
+
             // Debug log for each rental's date comparison
-            debugPrint('🔍 Rental date ${rental['start_time']} in range: $isInRange');
-            
+            debugPrint(
+                '🔍 Rental date ${rental['start_time']} in range: $isInRange');
+
             return isInRange;
           }).toList();
         }
-        
+
         setState(() {
           rentals = allRentals;
           isLoading = false;
         });
-        
+
         debugPrint('📊 Number of rentals after filtering: ${rentals.length}');
       } else {
         // Log error response
@@ -309,11 +314,20 @@ class _ActivityPageState extends State<ActivityPage> {
   }
 
   Widget _buildActivityItem(Map<String, dynamic> rental) {
-    final name = rental['customer_name'] ?? '';
+    final name = rental['product_name'] ?? '';
     final price = 'IDR ${rental['total_amount']}';
     final time = '${rental['remaining_minutes']} Min';
-    final status = rental['status'] ?? 'Berlangsung';
-    
+    final status =
+        rental['status'] == 'playing' ? 'Disewa' : rental['status'] ?? '-';
+    final isLate = (rental['remaining_minutes'] ?? 0) < 0;
+    final lateMinutes = (rental['remaining_minutes'] ?? 0) < 0
+        ? -(rental['remaining_minutes'] ?? 0)
+        : 0;
+    final penalty = lateMinutes * 1000;
+    final paymentStatus = rental['payment_status'] ?? '-';
+    final penaltyStatus = rental['penalty_payment_status'] ?? '-';
+    final penaltyAmount = rental['penalty_amount'] ?? 0;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -336,63 +350,152 @@ class _ActivityPageState extends State<ActivityPage> {
           color: Colors.grey[100],
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.person,
-                color: Color(0xFF8B5CF6),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  Text(
-                    '$price • $time',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
+                  child: const Icon(
+                    Icons.person,
+                    color: Color(0xFF8B5CF6),
                   ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: status == 'Berlangsung'
-                    ? const Color(0xFF8B5CF6).withOpacity(0.2)
-                    : Colors.green.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                status,
-                style: TextStyle(
-                  color: status == 'Berlangsung'
-                      ? const Color(0xFF8B5CF6)
-                      : Colors.green,
-                  fontSize: 12,
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        '$price • $time',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (isLate) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Denda: Rp${NumberFormat('#,###').format(penalty)} (${lateMinutes} menit x Rp1.000)',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: status == 'Disewa'
+                        ? const Color(0xFF8B5CF6).withOpacity(0.2)
+                        : Colors.green.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: status == 'Disewa'
+                          ? const Color(0xFF8B5CF6)
+                          : Colors.green,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: paymentStatus == 'paid'
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    paymentStatus == 'paid' ? 'Sewa Lunas' : 'Sewa Belum Lunas',
+                    style: TextStyle(
+                      color: paymentStatus == 'paid'
+                          ? Colors.green
+                          : Colors.orange,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                penaltyAmount == 0
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Tidak Ada Denda',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 11,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: penaltyStatus == 'paid'
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          penaltyStatus == 'paid'
+                              ? 'Denda Lunas'
+                              : 'Denda Belum Lunas',
+                          style: TextStyle(
+                            color: penaltyStatus == 'paid'
+                                ? Colors.green
+                                : Colors.orange,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'playing':
+        return Colors.green;
+      case 'berlangsung':
+        return const Color(0xFF8B5CF6);
+      default:
+        return Colors.grey;
+    }
   }
 }

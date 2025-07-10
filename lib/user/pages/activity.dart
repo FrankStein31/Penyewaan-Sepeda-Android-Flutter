@@ -57,23 +57,16 @@ class _ActivityPageState extends State<ActivityPage> {
 
   Future<List<Map<String, dynamic>>> _fetchRentals() async {
     try {
-      // Get username from secure storage
-      final username = await storage.read(key: 'username');
-      if (username == null) return [];
-
+      final id = await storage.read(key: 'userId');
+      if (id == null) return [];
       final response = await http.get(
-        Uri.parse('${Config.baseUrl}/rentals'),
+        Uri.parse('${Config.baseUrl}/rentals/user/$id'),
         headers: {'Content-Type': 'application/json'},
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == true && data['data'] != null) {
-          final allRentals = List<Map<String, dynamic>>.from(data['data']);
-          // Filter rentals to only show the logged-in user's rentals
-          return allRentals.where((rental) => 
-            rental['customer_name']?.toString().toLowerCase() == username.toLowerCase()
-          ).toList();
+          return List<Map<String, dynamic>>.from(data['data']);
         }
       }
       return [];
@@ -230,19 +223,29 @@ class _ActivityPageState extends State<ActivityPage> {
 
                     final rentals = snapshot.data ?? [];
                     if (rentals.isEmpty) {
-                      return const Center(child: Text('No rental history found'));
+                      return const Center(
+                          child: Text('No rental history found'));
                     }
 
                     return ListView.builder(
                       itemCount: rentals.length,
                       itemBuilder: (context, index) {
                         final rental = rentals[index];
+                        final penaltyStatus =
+                            rental['penalty_payment_status'] ?? '-';
+                        final paymentStatus = rental['payment_status'] ?? '-';
+                        final isPenaltyPaid = penaltyStatus == 'paid';
+                        final isSewaPaid = paymentStatus == 'paid';
+                        final penaltyAmount = rental['penalty_amount'] ?? 0;
+                        debugPrint(
+                            'activity.dart | penalty_payment_status: ${penaltyStatus} | isPenaltyPaid: ${isPenaltyPaid} | payment_status: ${paymentStatus} | isSewaPaid: ${isSewaPaid}');
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => DetailActivityPage(rentalData: rental),
+                                builder: (context) =>
+                                    DetailActivityPage(rentalData: rental),
                               ),
                             );
                           },
@@ -253,58 +256,146 @@ class _ActivityPageState extends State<ActivityPage> {
                               color: Colors.grey[100],
                               borderRadius: BorderRadius.circular(12),
                             ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF8B5CF6).withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Icon(
-                                  Icons.person,
-                                  color: Color(0xFF8B5CF6),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      rental['customer_name'] ?? rental['product_name'] ?? 'Unknown',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${formatRupiah(rental['total_amount'])} • ${rental['remaining_minutes'] ?? 0} Min',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: getStatusColor(rental['status'] ?? '').withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  rental['status']?.toString() ?? 'Unknown',
-                                  style: TextStyle(
-                                    color: getStatusColor(rental['status'] ?? ''),
-                                    fontSize: 12,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF8B5CF6)
+                                        .withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: Color(0xFF8B5CF6),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        rental['customer_name'] ??
+                                            rental['product_name'] ??
+                                            'Unknown',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${formatRupiah(rental['total_amount'])} • ${rental['remaining_minutes'] ?? 0} Min',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: isSewaPaid
+                                                  ? Colors.green
+                                                      .withOpacity(0.1)
+                                                  : Colors.orange
+                                                      .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              isSewaPaid
+                                                  ? 'Sewa Lunas'
+                                                  : 'Sewa Belum Lunas',
+                                              style: TextStyle(
+                                                color: isSewaPaid
+                                                    ? Colors.green
+                                                    : Colors.orange,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          penaltyAmount == 0
+                                              ? Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                  ),
+                                                  child: const Text(
+                                                    'Tidak Ada Denda',
+                                                    style: TextStyle(
+                                                      color: Colors.grey,
+                                                      fontSize: 11,
+                                                    ),
+                                                  ),
+                                                )
+                                              : Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: isPenaltyPaid
+                                                        ? Colors.green
+                                                            .withOpacity(0.1)
+                                                        : Colors.orange
+                                                            .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                  ),
+                                                  child: Text(
+                                                    isPenaltyPaid
+                                                        ? 'Denda Lunas'
+                                                        : 'Denda Belum Lunas',
+                                                    style: TextStyle(
+                                                      color: isPenaltyPaid
+                                                          ? Colors.green
+                                                          : Colors.orange,
+                                                      fontSize: 11,
+                                                    ),
+                                                  ),
+                                                ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        getStatusColor(rental['status'] ?? '')
+                                            .withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    rental['status']?.toString() == 'playing'
+                                        ? 'Disewa'
+                                        : rental['status']?.toString() ??
+                                            'Unknown',
+                                    style: TextStyle(
+                                      color: getStatusColor(
+                                          rental['status'] ?? ''),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },

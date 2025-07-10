@@ -24,7 +24,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
   late Animation<double> _animation;
   String? userName;
   String? userId;
-  
+
   // Timer variables
   int totalMinutes = 0;
   int remainingMinutes = 0;
@@ -71,7 +71,8 @@ class _DetailActivityPageState extends State<DetailActivityPage>
       setState(() => isLoading = true);
 
       final response = await http.post(
-        Uri.parse('${Config.baseUrl}/rentals/${rentalDetail!['id']}/penalty-payment'),
+        Uri.parse(
+            '${Config.baseUrl}/rentals/${rentalDetail!['id']}/penalty-payment'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -202,7 +203,8 @@ class _DetailActivityPageState extends State<DetailActivityPage>
           try {
             final now = DateTime.now();
             final returnResponse = await http.put(
-              Uri.parse('${Config.baseUrl}/rentals/${rentalDetail!['id']}/return'),
+              Uri.parse(
+                  '${Config.baseUrl}/rentals/${rentalDetail!['id']}/return'),
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -213,7 +215,8 @@ class _DetailActivityPageState extends State<DetailActivityPage>
             );
 
             if (returnResponse.statusCode != 200) {
-              debugPrint('Return endpoint failed: ${returnResponse.statusCode}');
+              debugPrint(
+                  'Return endpoint failed: ${returnResponse.statusCode}');
             }
           } catch (returnError) {
             debugPrint('Error calling return endpoint: $returnError');
@@ -228,8 +231,9 @@ class _DetailActivityPageState extends State<DetailActivityPage>
               orElse: () => null,
             );
 
-            final penaltyAmount = penaltyItem?['price'] ?? rentalData['penalty_amount'] ?? 0;
-            
+            final penaltyAmount =
+                penaltyItem?['price'] ?? rentalData['penalty_amount'] ?? 0;
+
             if (penaltyAmount > 0) {
               await _showPenaltyDialog(penaltyAmount);
             } else {
@@ -302,21 +306,27 @@ class _DetailActivityPageState extends State<DetailActivityPage>
           setState(() {
             rentalDetail = data['data'];
             isLoading = false;
-            
+
             // Calculate total and remaining minutes
             totalMinutes = rentalDetail?['rental_duration']?.toInt() ?? 0;
             remainingMinutes = rentalDetail?['remaining_minutes']?.toInt() ?? 0;
-            
+
             // Ensure valid values
-            totalMinutes = totalMinutes > 0 ? totalMinutes : 60; // Default to 60 if invalid
-            remainingMinutes = remainingMinutes >= 0 ? remainingMinutes : totalMinutes; // Default to total if invalid
-            
+            totalMinutes = totalMinutes > 0
+                ? totalMinutes
+                : 60; // Default to 60 if invalid
+            remainingMinutes = remainingMinutes >= 0
+                ? remainingMinutes
+                : totalMinutes; // Default to total if invalid
+
             // Calculate rental end time
-            if (rentalDetail?['status']?.toString().toLowerCase() == 'playing') {
-              _rentalEndTime = DateTime.now().add(Duration(minutes: remainingMinutes));
+            if (rentalDetail?['status']?.toString().toLowerCase() ==
+                'playing') {
+              _rentalEndTime =
+                  DateTime.now().add(Duration(minutes: remainingMinutes));
               _startTimer();
             }
-            
+
             // Start the animation
             _controller.forward();
           });
@@ -336,6 +346,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
 
   @override
   Widget build(BuildContext context) {
+    final penaltyStatus = rentalDetail?['penalty_payment_status'] ?? '-';
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -357,233 +368,299 @@ class _DetailActivityPageState extends State<DetailActivityPage>
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Product Title
-            Text(
-              rentalDetail?['product_name'] ?? 'Sepeda Lipat\n( Berlangsung )',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Product Title
+                  Text(
+                    rentalDetail?['product_name'] ??
+                        'Sepeda Lipat\n( Berlangsung )',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-            // Animated Circle Progress
-            Center(
-              child: AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  return Stack(
-                    alignment: Alignment.center,
+                  // Animated Circle Progress
+                  Center(
+                    child: AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, child) {
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 200,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.grey[300]!,
+                                  width: 15,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 200,
+                              height: 200,
+                              child: CircularProgressIndicator(
+                                value: totalMinutes > 0
+                                    ? _animation.value *
+                                        (remainingMinutes / totalMinutes)
+                                    : 0,
+                                strokeWidth: 15,
+                                backgroundColor: Colors.transparent,
+                                color: const Color(0xFF8B5CF6),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.directions_bike,
+                              size: 80,
+                              color: Colors.black54,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Price Display
+                  Text(
+                    NumberFormat.currency(
+                      locale: 'id',
+                      symbol: 'Rp ',
+                      decimalDigits: 0,
+                    ).format(rentalDetail?['total_amount'] ?? 0),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Time Display Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.grey[300]!,
-                            width: 15,
+                      _buildTimeButton('$totalMinutes', 'Total'),
+                      const SizedBox(width: 16),
+                      _buildTimeButton('$remainingMinutes', 'Remaining'),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Payment Details Container
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Column(
+                      children: [
+                        // Header
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12)),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.receipt_long, size: 24),
+                              SizedBox(width: 8),
+                              Text(
+                                'Detail Pembayaran',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        width: 200,
-                        height: 200,
-                        child: CircularProgressIndicator(
-                          value: totalMinutes > 0 ? _animation.value * (remainingMinutes / totalMinutes) : 0,
-                          strokeWidth: 15,
-                          backgroundColor: Colors.transparent,
-                          color: const Color(0xFF8B5CF6),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.directions_bike,
-                        size: 80,
-                        color: Colors.black54,
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            // Price Display
-            Text(
-              NumberFormat.currency(
-                locale: 'id',
-                symbol: 'Rp ',
-                decimalDigits: 0,
-              ).format(rentalDetail?['total_amount'] ?? 0),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Time Display Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildTimeButton('$totalMinutes', 'Total'),
-                const SizedBox(width: 16),
-                _buildTimeButton('$remainingMinutes', 'Remaining'),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Payment Details Container
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Column(
-                children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.receipt_long, size: 24),
-                        SizedBox(width: 8),
-                        Text(
-                          'Detail Pembayaran',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        // Cost Details
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              _buildReceiptRow(
+                                  'Biaya Sewa',
+                                  NumberFormat.currency(
+                                    locale: 'id',
+                                    symbol: 'Rp ',
+                                    decimalDigits: 0,
+                                  ).format(rentalDetail?['total_amount'] ?? 0),
+                                  isTotal: false),
+                              const SizedBox(height: 8),
+                              _buildReceiptRow(
+                                  'Denda',
+                                  NumberFormat.currency(
+                                    locale: 'id',
+                                    symbol: 'Rp ',
+                                    decimalDigits: 0,
+                                  ).format(penaltyAmount ??
+                                      rentalDetail?['penalty_amount'] ??
+                                      0),
+                                  textColor: Colors.red,
+                                  isTotal: false),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                child: Divider(thickness: 1),
+                              ),
+                              _buildReceiptRow(
+                                  'Total',
+                                  NumberFormat.currency(
+                                    locale: 'id',
+                                    symbol: 'Rp ',
+                                    decimalDigits: 0,
+                                  ).format(
+                                      (rentalDetail?['total_amount'] ?? 0) +
+                                          (penaltyAmount ??
+                                              rentalDetail?['penalty_amount'] ??
+                                              0)),
+                                  isTotal: true),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  // Cost Details
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildReceiptRow(
-                          'Biaya Sewa',
-                          NumberFormat.currency(
-                            locale: 'id',
-                            symbol: 'Rp ',
-                            decimalDigits: 0,
-                          ).format(rentalDetail?['total_amount'] ?? 0),
-                          isTotal: false
-                        ),
-                        const SizedBox(height: 8),
-                        _buildReceiptRow(
-                          'Denda',
-                          NumberFormat.currency(
-                            locale: 'id',
-                            symbol: 'Rp ',
-                            decimalDigits: 0,
-                          ).format(penaltyAmount ?? rentalDetail?['penalty_amount'] ?? 0),
-                          textColor: Colors.red,
-                          isTotal: false
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Divider(thickness: 1),
-                        ),
-                        _buildReceiptRow(
-                          'Total',
-                          NumberFormat.currency(
-                            locale: 'id',
-                            symbol: 'Rp ',
-                            decimalDigits: 0,
-                          ).format((rentalDetail?['total_amount'] ?? 0) + (penaltyAmount ?? rentalDetail?['penalty_amount'] ?? 0)),
-                          isTotal: true
-                        ),
-                      ],
+                  const SizedBox(height: 16),
+
+                  // Selesai Button
+                  ElevatedButton(
+                    onPressed: () async {
+                      final status =
+                          rentalDetail?['status']?.toString().toLowerCase() ??
+                              '';
+                      if (status == 'returned') {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Info'),
+                              content: const Text('Rental ini sudah selesai'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: const Color(0xFF8B5CF6),
+                                  ),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      } else if (status == 'playing') {
+                        if (rentalDetail?['penalty_amount'] != null &&
+                            rentalDetail?['penalty_amount'] > 0 &&
+                            penaltyStatus != 'paid') {
+                          // Belum bayar denda
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Denda Belum Lunas'),
+                                content: const Text(
+                                    'Anda harus membayar denda terlebih dahulu sebelum menyelesaikan rental.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          return;
+                        }
+                        // Sudah bayar denda atau tidak ada denda, proses return
+                        try {
+                          final response = await http.put(
+                            Uri.parse(
+                                '${Config.baseUrl}/rentals/${rentalDetail!['id']}/return'),
+                            headers: {'Content-Type': 'application/json'},
+                          );
+                          if (response.statusCode == 200) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Rental berhasil dikembalikan!')),
+                              );
+                              Navigator.pop(context, true);
+                            }
+                          } else {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Gagal mengembalikan rental!')),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        }
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Info'),
+                              content: const Text(
+                                  'Rental tidak dalam status bermain'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: const Color(0xFF8B5CF6),
+                                  ),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          rentalDetail?['status']?.toString().toLowerCase() ==
+                                  'playing'
+                              ? const Color(0xFF8B5CF6)
+                              : Colors.grey,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Selesai',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Selesai Button
-            ElevatedButton(
-              onPressed: () {
-                final status = rentalDetail?['status']?.toString().toLowerCase() ?? '';
-                if (status == 'returned') {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Info'),
-                        content: const Text('Rental ini sudah selesai'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF8B5CF6),
-                            ),
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                } else if (status == 'playing') {
-                  _showStopConfirmation();
-                } else {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Info'),
-                        content: const Text('Rental tidak dalam status bermain'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF8B5CF6),
-                            ),
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: rentalDetail?['status']?.toString().toLowerCase() == 'playing'
-                    ? const Color(0xFF8B5CF6)
-                    : Colors.grey,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Selesai',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
-      )),
+            )),
     );
   }
 
@@ -617,7 +694,8 @@ class _DetailActivityPageState extends State<DetailActivityPage>
     );
   }
 
-  Widget _buildReceiptRow(String label, String amount, {Color? textColor, bool isTotal = false}) {
+  Widget _buildReceiptRow(String label, String amount,
+      {Color? textColor, bool isTotal = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -643,7 +721,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
 
   void _startTimer() {
     _timer?.cancel(); // Cancel any existing timer
-    
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_rentalEndTime == null) {
         timer.cancel();
@@ -652,10 +730,11 @@ class _DetailActivityPageState extends State<DetailActivityPage>
 
       final now = DateTime.now();
       final difference = _rentalEndTime!.difference(now);
-      
+
       if (difference.inSeconds <= 0) {
         setState(() {
-          remainingMinutes = -((-difference.inSeconds) / 60).ceil(); // Convert to negative minutes
+          remainingMinutes = -((-difference.inSeconds) / 60)
+              .ceil(); // Convert to negative minutes
         });
         // Fetch penalty amount when overtime
         _fetchPenaltyAmount();
@@ -682,13 +761,15 @@ class _DetailActivityPageState extends State<DetailActivityPage>
           if (mounted) {
             setState(() {
               // Get penalty from item_details if exists, otherwise use penalty_amount
-              final itemDetails = data['data']['item_details'] as List<dynamic>?;
+              final itemDetails =
+                  data['data']['item_details'] as List<dynamic>?;
               final penaltyItem = itemDetails?.firstWhere(
                 (item) => item['id'].toString().startsWith('PENALTY-'),
                 orElse: () => null,
               );
-              
-              penaltyAmount = penaltyItem?['price'] ?? data['data']['penalty_amount'] ?? 0;
+
+              penaltyAmount =
+                  penaltyItem?['price'] ?? data['data']['penalty_amount'] ?? 0;
             });
           }
         }
