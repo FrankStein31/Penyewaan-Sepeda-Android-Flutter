@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import '../../config.dart';
+import 'detail_report_admin.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -465,12 +466,23 @@ class _ReportPageState extends State<ReportPage> {
 
                               final time = '${rental['rental_hours']} Jam';
 
-                              return _buildReportItem(
-                                rental['product_name'] ?? 'Unknown',
-                                status,
-                                amount,
-                                time,
-                                rental['status'] == 'playing' ? '🚲' : '✅',
+                              return GestureDetector(
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DetailReportAdminPage(rental: rental),
+                                    ),
+                                  );
+                                },
+                                child: _buildReportItem(
+                                  rental['product_name'] ?? 'Unknown',
+                                  status,
+                                  amount,
+                                  time,
+                                  rental['status'] == 'playing' ? '🚲' : '✅',
+                                ),
                               );
                             },
                           ),
