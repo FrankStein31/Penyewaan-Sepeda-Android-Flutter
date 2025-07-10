@@ -79,6 +79,8 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
     final damage = d['damage_penalty'] ?? 0;
     final lost = d['lost_penalty'] ?? 0;
     final totalAll = total + penalty + damage + lost;
+    final paymentStatus = d['payment_status'] ?? '-';
+    final penaltyStatus = d['penalty_payment_status'] ?? '-';
 
     return Scaffold(
       appBar: AppBar(
@@ -185,6 +187,59 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
             _buildRow('Denda Hilang', lost, color: Colors.purple),
             const Divider(height: 32),
             _buildRow('Total Pembayaran', totalAll, bold: true),
+            const Divider(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Status Pembayaran Sewa:'),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: paymentStatus == 'paid'
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    paymentStatus == 'paid' ? 'Lunas' : 'Belum Lunas',
+                    style: TextStyle(
+                      color: paymentStatus == 'paid'
+                          ? Colors.green
+                          : Colors.orange,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Status Pembayaran Denda:'),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: penaltyStatus == 'paid'
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    penaltyStatus == 'paid' ? 'Lunas' : 'Belum Lunas',
+                    style: TextStyle(
+                      color: penaltyStatus == 'paid'
+                          ? Colors.green
+                          : Colors.orange,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 32),
           ],
         ),
       ),

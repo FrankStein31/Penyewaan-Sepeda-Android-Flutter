@@ -231,6 +231,13 @@ class _ActivityPageState extends State<ActivityPage> {
                       itemCount: rentals.length,
                       itemBuilder: (context, index) {
                         final rental = rentals[index];
+                        final penaltyStatus =
+                            rental['penalty_payment_status'] ?? '-';
+                        final paymentStatus = rental['payment_status'] ?? '-';
+                        final isPenaltyPaid = penaltyStatus == 'paid';
+                        final isSewaPaid = paymentStatus == 'paid';
+                        debugPrint(
+                            'activity.dart | penalty_payment_status: ${penaltyStatus} | isPenaltyPaid: ${isPenaltyPaid} | payment_status: ${paymentStatus} | isSewaPaid: ${isSewaPaid}');
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -284,6 +291,59 @@ class _ActivityPageState extends State<ActivityPage> {
                                           color: Colors.grey[600],
                                           fontSize: 14,
                                         ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: isSewaPaid
+                                                  ? Colors.green
+                                                      .withOpacity(0.1)
+                                                  : Colors.orange
+                                                      .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              isSewaPaid
+                                                  ? 'Sewa Lunas'
+                                                  : 'Sewa Belum Lunas',
+                                              style: TextStyle(
+                                                color: isSewaPaid
+                                                    ? Colors.green
+                                                    : Colors.orange,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: isPenaltyPaid
+                                                  ? Colors.green
+                                                      .withOpacity(0.1)
+                                                  : Colors.orange
+                                                      .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              isPenaltyPaid
+                                                  ? 'Denda Lunas'
+                                                  : 'Denda Belum Lunas',
+                                              style: TextStyle(
+                                                color: isPenaltyPaid
+                                                    ? Colors.green
+                                                    : Colors.orange,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),

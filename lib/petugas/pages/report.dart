@@ -466,6 +466,11 @@ class _ReportPageState extends State<ReportPage> {
 
                               final time = '${rental['rental_hours']} Jam';
 
+                              final paymentStatus =
+                                  rental['payment_status'] ?? '-';
+                              final penaltyStatus =
+                                  rental['penalty_payment_status'] ?? '-';
+
                               return GestureDetector(
                                 onTap: () async {
                                   await Navigator.push(
@@ -552,6 +557,26 @@ class _ReportPageState extends State<ReportPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String label, bool isPaid) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isPaid
+            ? Colors.green.withOpacity(0.1)
+            : Colors.orange.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isPaid ? Colors.green : Colors.orange,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

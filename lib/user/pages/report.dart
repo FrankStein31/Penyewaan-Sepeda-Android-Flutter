@@ -381,27 +381,14 @@ class _ReportPageState extends State<ReportPage> {
                                       ? '(Selesai)'
                                       : '';
 
-                              // Menghitung total dari penalty_amount dan total_amount
-                              final penaltyAmount =
-                                  rental['penalty_amount'] ?? 0;
-                              final totalAmount = rental['total_amount'] ?? 0;
-                              final totalPayment = penaltyAmount + totalAmount;
-
-                              final amount =
-                                  'IDR ${NumberFormat('#,###').format(totalPayment)}';
+                              final amount = rental['penalty_amount'] > 0
+                                  ? 'IDR ${NumberFormat('#,###').format(rental['penalty_amount'])}'
+                                  : 'IDR ${NumberFormat('#,###').format(rental['total_amount'])}';
 
                               final time = '${rental['rental_hours']} Jam';
-
-                              // Determine status icon
-                              String statusIcon;
-                              if (rental['status'] == 'playing') {
-                                statusIcon = '🚲';
-                              } else if (rental['penalty_amount'] > 0 &&
-                                  penaltyStatuses[rental['id']] != 'paid') {
-                                statusIcon = 'Denda';
-                              } else {
-                                statusIcon = '✅';
-                              }
+                              final penaltyStatus =
+                                  rental['penalty_payment_status'] ?? '-';
+                              final rawStatus = rental['status'] ?? '';
 
                               return GestureDetector(
                                 onTap: () async {
@@ -413,7 +400,6 @@ class _ReportPageState extends State<ReportPage> {
                                     ),
                                   );
                                   if (result == true) {
-                                    // Refresh the list when returning from detail page
                                     fetchRentals();
                                   }
                                 },
@@ -422,7 +408,9 @@ class _ReportPageState extends State<ReportPage> {
                                   status,
                                   amount,
                                   time,
-                                  statusIcon,
+                                  rental['status'] == 'playing' ? '🚲' : '✅',
+                                  penaltyStatus,
+                                  rawStatus,
                                 ),
                               );
                             },
@@ -435,8 +423,11 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-  Widget _buildReportItem(
-      String name, String status, String price, String time, String emoji) {
+  Widget _buildReportItem(String name, String status, String price, String time,
+      String emoji, String penaltyStatus, String rawStatus) {
+    final isPenaltyPaid = penaltyStatus == 'paid';
+    debugPrint(
+        'report.dart | penalty_payment_status: ${penaltyStatus} | isPenaltyPaid: ${isPenaltyPaid}');
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -471,10 +462,9 @@ class _ReportPageState extends State<ReportPage> {
             children: [
               Text(
                 price,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: price.contains('0') ? Colors.black : Colors.red,
                 ),
               ),
               Text(
@@ -486,30 +476,27 @@ class _ReportPageState extends State<ReportPage> {
               ),
             ],
           ),
-          emoji == 'Denda'
-              ? Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.red[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    emoji,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.red[700],
-                    ),
-                  ),
-                )
-              : Text(
-                  emoji,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPenaltyPaid
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isPenaltyPaid ? 'Denda Lunas' : 'Denda Belum Lunas',
+                  style: TextStyle(
+                    color: isPenaltyPaid ? Colors.green : Colors.orange,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
+              ),
+            ],
+          ),
         ],
       ),
     );

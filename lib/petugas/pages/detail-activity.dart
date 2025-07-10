@@ -88,6 +88,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
             _updateProgress();
             _controller.forward();
           });
+          debugPrint('DETAIL ACTIVITY: ' + data['data'].toString());
         }
       }
     } catch (e) {
@@ -107,6 +108,13 @@ class _DetailActivityPageState extends State<DetailActivityPage>
 
   @override
   Widget build(BuildContext context) {
+    final paymentStatus = rentalDetails?['payment_status'] ?? '-';
+    final penaltyStatus = rentalDetails?['penalty_payment_status'] ?? '-';
+    final penyewa = rentalDetails?['user_name'] ?? '-';
+    final phone = rentalDetails?['user_phone'] ?? '-';
+    final nik = rentalDetails?['user_nik'] ?? '-';
+    final address = rentalDetails?['user_address'] ?? '-';
+    final ktp = rentalDetails?['user_ktp_image'];
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -144,7 +152,75 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                         color: Colors.grey,
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 20),
+                    // Info Penyewa
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.person, size: 18),
+                              SizedBox(width: 6),
+                              Text('Penyewa: $penyewa'),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.phone, size: 18),
+                              SizedBox(width: 6),
+                              Text('No HP: $phone'),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.credit_card, size: 18),
+                              SizedBox(width: 6),
+                              Text('NIK: $nik'),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.home, size: 18),
+                              SizedBox(width: 6),
+                              Expanded(
+                                  child: Text('Alamat: $address',
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis)),
+                            ],
+                          ),
+                          if (ktp != null && ktp != '') ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.image, size: 18),
+                                SizedBox(width: 6),
+                                Text('Foto KTP:'),
+                                SizedBox(width: 8),
+                                Image.network(
+                                    '${Config.baseUrl.replaceAll('/api', '')}/' +
+                                        ktp,
+                                    width: 80,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (c, e, s) =>
+                                        const Icon(Icons.broken_image)),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
                     // Circular Progress with Bike
                     Stack(
@@ -342,30 +418,60 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text('Status Pembayaran'),
+                                      const Text('Status Pembayaran Sewa'),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 8,
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: rentalDetails![
-                                                      'payment_status'] ==
-                                                  'paid'
+                                          color: paymentStatus == 'paid'
                                               ? Colors.green.withOpacity(0.1)
                                               : Colors.orange.withOpacity(0.1),
                                           borderRadius:
                                               BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          rentalDetails!['payment_status'] ==
-                                                  'paid'
+                                          paymentStatus == 'paid'
                                               ? 'Lunas'
                                               : 'Belum Lunas',
                                           style: TextStyle(
-                                            color: rentalDetails![
-                                                        'payment_status'] ==
-                                                    'paid'
+                                            color: paymentStatus == 'paid'
+                                                ? Colors.green
+                                                : Colors.orange,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                                if (rentalDetails?['penalty_payment_status'] !=
+                                    null) ...[
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text('Status Pembayaran Denda'),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: (penaltyStatus == 'paid')
+                                              ? Colors.green.withOpacity(0.1)
+                                              : Colors.orange.withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          (penaltyStatus == 'paid')
+                                              ? 'Lunas'
+                                              : 'Belum Lunas',
+                                          style: TextStyle(
+                                            color: (penaltyStatus == 'paid')
                                                 ? Colors.green
                                                 : Colors.orange,
                                             fontWeight: FontWeight.w500,

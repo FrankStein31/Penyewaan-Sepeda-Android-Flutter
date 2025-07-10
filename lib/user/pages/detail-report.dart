@@ -290,6 +290,7 @@ class _DetailReportPageState extends State<DetailReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final penaltyStatus = widget.rental['penalty_payment_status'] ?? '-';
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

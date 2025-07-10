@@ -324,6 +324,8 @@ class _ActivityPageState extends State<ActivityPage> {
         ? -(rental['remaining_minutes'] ?? 0)
         : 0;
     final penalty = lateMinutes * 1000;
+    final paymentStatus = rental['payment_status'] ?? '-';
+    final penaltyStatus = rental['penalty_payment_status'] ?? '-';
 
     return GestureDetector(
       onTap: () {
@@ -413,6 +415,51 @@ class _ActivityPageState extends State<ActivityPage> {
                           ? const Color(0xFF8B5CF6)
                           : Colors.green,
                       fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: paymentStatus == 'paid'
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    paymentStatus == 'paid' ? 'Sewa Lunas' : 'Sewa Belum Lunas',
+                    style: TextStyle(
+                      color: paymentStatus == 'paid'
+                          ? Colors.green
+                          : Colors.orange,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: penaltyStatus == 'paid'
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    penaltyStatus == 'paid'
+                        ? 'Denda Lunas'
+                        : 'Denda Belum Lunas',
+                    style: TextStyle(
+                      color: penaltyStatus == 'paid'
+                          ? Colors.green
+                          : Colors.orange,
+                      fontSize: 11,
                     ),
                   ),
                 ),
