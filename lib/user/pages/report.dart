@@ -19,12 +19,159 @@ class _ReportPageState extends State<ReportPage> {
   List<Map<String, dynamic>> rentals = [];
   bool isLoading = true;
   Map<int, String> penaltyStatuses = {};
+  double totalSpent = 0;
+  double totalPenalty = 0;
+  double totalDamage = 0;
+  double totalLost = 0;
 
   @override
   void initState() {
     super.initState();
     getUserData();
     fetchRentals();
+  }
+
+  void _calculateSummary() {
+    double spent = 0;
+    double penalty = 0;
+    double damage = 0;
+    double lost = 0;
+
+    for (var rental in rentals) {
+      spent += rental['total_amount'] ?? 0;
+      penalty += rental['penalty_amount'] ?? 0;
+      damage += rental['damage_penalty'] ?? 0;
+      lost += rental['lost_penalty'] ?? 0;
+    }
+
+    setState(() {
+      totalSpent = spent;
+      totalPenalty = penalty;
+      totalDamage = damage;
+      totalLost = lost;
+    });
+  }
+
+  Widget _buildSummaryCards() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildSummaryCard(
+                  'Total Pembayaran',
+                  totalSpent,
+                  Icons.account_balance_wallet,
+                  const Color(0xFF8B5CF6),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildSummaryCard(
+                  'Total Denda',
+                  totalPenalty + totalDamage + totalLost,
+                  Icons.warning,
+                  Colors.red,
+                ),
+              ),
+            ],
+          ),
+          if (totalPenalty > 0 || totalDamage > 0 || totalLost > 0) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                if (totalPenalty > 0)
+                  Expanded(
+                    child: _buildSummaryCard(
+                      'Denda Terlambat',
+                      totalPenalty,
+                      Icons.timer_off,
+                      Colors.orange,
+                    ),
+                  ),
+                if (totalDamage > 0) ...[
+                  if (totalPenalty > 0) const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildSummaryCard(
+                      'Denda Rusak',
+                      totalDamage,
+                      Icons.build,
+                      Colors.red,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            if (totalLost > 0) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSummaryCard(
+                      'Denda Hilang',
+                      totalLost,
+                      Icons.report_problem,
+                      Colors.purple,
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(
+      String title, double amount, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: color,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            NumberFormat.currency(
+              locale: 'id',
+              symbol: 'Rp ',
+              decimalDigits: 0,
+            ).format(amount),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> getUserData() async {
@@ -76,6 +223,7 @@ class _ReportPageState extends State<ReportPage> {
               await checkPenaltyStatus(rental['id']);
             }
           }
+          _calculateSummary(); // Calculate summary after fetching rentals
         } else {
           throw Exception(responseData['message']);
         }
@@ -189,6 +337,11 @@ class _ReportPageState extends State<ReportPage> {
               ),
               const SizedBox(height: 24),
 
+              // Add summary cards after the purple card
+              const SizedBox(height: 24),
+              _buildSummaryCards(),
+              const SizedBox(height: 24),
+
               // Report section header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -223,7 +376,7 @@ class _ReportPageState extends State<ReportPage> {
                             itemBuilder: (context, index) {
                               final rental = rentals[index];
                               final status = rental['status'] == 'playing'
-                                  ? '(Bermain)'
+                                  ? '(Disewa)'
                                   : rental['status'] == 'returned'
                                       ? '(Selesai)'
                                       : '';
@@ -233,7 +386,7 @@ class _ReportPageState extends State<ReportPage> {
                                   rental['penalty_amount'] ?? 0;
                               final totalAmount = rental['total_amount'] ?? 0;
                               final totalPayment = penaltyAmount + totalAmount;
-                              
+
                               final amount =
                                   'IDR ${NumberFormat('#,###').format(totalPayment)}';
 
@@ -243,8 +396,8 @@ class _ReportPageState extends State<ReportPage> {
                               String statusIcon;
                               if (rental['status'] == 'playing') {
                                 statusIcon = '🚲';
-                              } else if (rental['penalty_amount'] > 0 && 
-                                       penaltyStatuses[rental['id']] != 'paid') {
+                              } else if (rental['penalty_amount'] > 0 &&
+                                  penaltyStatuses[rental['id']] != 'paid') {
                                 statusIcon = 'Denda';
                               } else {
                                 statusIcon = '✅';

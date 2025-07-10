@@ -317,7 +317,13 @@ class _ActivityPageState extends State<ActivityPage> {
     final name = rental['product_name'] ?? '';
     final price = 'IDR ${rental['total_amount']}';
     final time = '${rental['remaining_minutes']} Min';
-    final status = rental['status'] ?? 'Berlangsung';
+    final status =
+        rental['status'] == 'playing' ? 'Disewa' : rental['status'] ?? '-';
+    final isLate = (rental['remaining_minutes'] ?? 0) < 0;
+    final lateMinutes = (rental['remaining_minutes'] ?? 0) < 0
+        ? -(rental['remaining_minutes'] ?? 0)
+        : 0;
+    final penalty = lateMinutes * 1000;
 
     return GestureDetector(
       onTap: () {
@@ -341,63 +347,91 @@ class _ActivityPageState extends State<ActivityPage> {
           color: Colors.grey[100],
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.person,
-                color: Color(0xFF8B5CF6),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  Text(
-                    '$price • $time',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
+                  child: const Icon(
+                    Icons.person,
+                    color: Color(0xFF8B5CF6),
                   ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: status == 'Berlangsung'
-                    ? const Color(0xFF8B5CF6).withOpacity(0.2)
-                    : Colors.green.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                status,
-                style: TextStyle(
-                  color: status == 'Berlangsung'
-                      ? const Color(0xFF8B5CF6)
-                      : Colors.green,
-                  fontSize: 12,
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        '$price • $time',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (isLate) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Denda: Rp${NumberFormat('#,###').format(penalty)} (${lateMinutes} menit x Rp1.000)',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: status == 'Disewa'
+                        ? const Color(0xFF8B5CF6).withOpacity(0.2)
+                        : Colors.green.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: status == 'Disewa'
+                          ? const Color(0xFF8B5CF6)
+                          : Colors.green,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'playing':
+        return Colors.green;
+      case 'berlangsung':
+        return const Color(0xFF8B5CF6);
+      default:
+        return Colors.grey;
+    }
   }
 }

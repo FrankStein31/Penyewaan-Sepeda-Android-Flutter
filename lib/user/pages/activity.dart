@@ -298,7 +298,10 @@ class _ActivityPageState extends State<ActivityPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    rental['status']?.toString() ?? 'Unknown',
+                                    rental['status']?.toString() == 'playing'
+                                        ? 'Disewa'
+                                        : rental['status']?.toString() ??
+                                            'Unknown',
                                     style: TextStyle(
                                       color: getStatusColor(
                                           rental['status'] ?? ''),

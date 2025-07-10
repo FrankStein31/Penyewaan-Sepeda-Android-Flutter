@@ -304,31 +304,6 @@ class _ProductStatusPageState extends State<ProductStatusPage> {
       ),
       body: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Text('Filter Status: '),
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: _selectedStatus,
-                  items: const [
-                    DropdownMenuItem(value: 'semua', child: Text('Semua')),
-                    DropdownMenuItem(
-                        value: 'tersedia', child: Text('Tersedia')),
-                    DropdownMenuItem(value: 'disewa', child: Text('Disewa')),
-                    DropdownMenuItem(value: 'rusak', child: Text('Rusak')),
-                    DropdownMenuItem(value: 'hilang', child: Text('Hilang')),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStatus = value!;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())

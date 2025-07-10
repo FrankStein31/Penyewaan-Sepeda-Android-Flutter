@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config.dart';
+import 'dart:math';
+import 'package:intl/intl.dart';
 
 class RentalMonitoringPage extends StatefulWidget {
   const RentalMonitoringPage({super.key});
@@ -65,6 +67,13 @@ class _RentalMonitoringPageState extends State<RentalMonitoringPage> {
     return '$hours jam ${remainingMinutes > 0 ? '$remainingMinutes menit' : ''}';
   }
 
+  String _formatDateTimeToJakarta(String? dateTimeStr) {
+    if (dateTimeStr == null) return '-';
+    final utc = DateTime.parse(dateTimeStr).toUtc();
+    final jakarta = utc.add(const Duration(hours: 7));
+    return DateFormat('dd MMM yyyy, HH:mm').format(jakarta) + ' WIB';
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeRentals =
@@ -119,7 +128,9 @@ class _RentalMonitoringPageState extends State<RentalMonitoringPage> {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        rental['status'].toUpperCase(),
+                                        rental['status'] == 'playing'
+                                            ? 'DISEWA'
+                                            : rental['status'].toUpperCase(),
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
@@ -133,10 +144,10 @@ class _RentalMonitoringPageState extends State<RentalMonitoringPage> {
                                 Text('Telepon: ${rental['user_phone'] ?? '-'}'),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Mulai: ${rental['start_time'].substring(0, 16)}',
+                                  'Mulai: ${_formatDateTimeToJakarta(rental['start_time'])}',
                                 ),
                                 Text(
-                                  'Selesai: ${rental['end_time'].substring(0, 16)}',
+                                  'Selesai: ${_formatDateTimeToJakarta(rental['end_time'])}',
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
@@ -165,6 +176,34 @@ class _RentalMonitoringPageState extends State<RentalMonitoringPage> {
                                     style: const TextStyle(
                                       color: Colors.red,
                                       fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Rincian Denda:',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Keterlambatan: ${(-remainingMinutes)} menit',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Biaya per menit: Rp1.000',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Total: ${(-remainingMinutes)} x Rp1.000 = Rp${NumberFormat('#,###').format((-remainingMinutes) * 1000)}',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ],

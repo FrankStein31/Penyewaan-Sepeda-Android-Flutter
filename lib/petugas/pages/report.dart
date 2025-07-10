@@ -21,6 +21,9 @@ class _ReportPageState extends State<ReportPage> {
   DateTime? endDate;
   double totalIncome = 0;
   int totalUsers = 0;
+  double totalPenaltyIncome = 0;
+  double totalDamageIncome = 0;
+  double totalLostIncome = 0;
 
   @override
   void initState() {
@@ -49,18 +52,27 @@ class _ReportPageState extends State<ReportPage> {
   void _calculateSummary() {
     Set<String> uniqueUsers = {};
     double income = 0;
+    double penaltyIncome = 0;
+    double damageIncome = 0;
+    double lostIncome = 0;
 
     for (var rental in rentals) {
       // Add user to unique users set
       uniqueUsers.add(rental['customer_name'] ?? '');
 
       // Calculate total income (including penalties)
-      income += (rental['total_amount'] ?? 0) + (rental['penalty_amount'] ?? 0);
+      income += (rental['total_amount'] ?? 0);
+      penaltyIncome += (rental['penalty_amount'] ?? 0);
+      damageIncome += (rental['damage_penalty'] ?? 0);
+      lostIncome += (rental['lost_penalty'] ?? 0);
     }
 
     setState(() {
       totalUsers = uniqueUsers.length;
       totalIncome = income;
+      totalPenaltyIncome = penaltyIncome;
+      totalDamageIncome = damageIncome;
+      totalLostIncome = lostIncome;
     });
   }
 
@@ -188,93 +200,123 @@ class _ReportPageState extends State<ReportPage> {
   Widget _buildSummaryCards() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
+      child: Column(
         children: [
-          // Total Income Card
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.2),
+          Row(
+            children: [
+              Expanded(
+                child: _buildIncomeCard(
+                  'Total Pendapatan',
+                  totalIncome,
+                  Icons.account_balance_wallet,
+                  const Color(0xFF8B5CF6),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.account_balance_wallet,
-                        size: 20,
-                        color: const Color(0xFF8B5CF6),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Total Income',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF8B5CF6),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'IDR ${NumberFormat('#,###').format(totalIncome)}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildIncomeCard(
+                  'Total Pengguna',
+                  totalUsers.toDouble(),
+                  Icons.people,
+                  const Color(0xFF8B5CF6),
+                  isCount: true,
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(width: 12),
-          // Total Users Card
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.2),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildIncomeCard(
+                  'Denda Terlambat',
+                  totalPenaltyIncome,
+                  Icons.timer_off,
+                  Colors.orange,
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.people,
-                        size: 20,
-                        color: const Color(0xFF8B5CF6),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Total Users',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF8B5CF6),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    totalUsers.toString(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildIncomeCard(
+                  'Denda Rusak',
+                  totalDamageIncome,
+                  Icons.build,
+                  Colors.red,
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildIncomeCard(
+                  'Denda Hilang',
+                  totalLostIncome,
+                  Icons.report_problem,
+                  Colors.purple,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildIncomeCard(
+                  'Total Denda',
+                  totalPenaltyIncome + totalDamageIncome + totalLostIncome,
+                  Icons.warning,
+                  Colors.deepOrange,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIncomeCard(
+      String title, double amount, IconData icon, Color color,
+      {bool isCount = false}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: color,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isCount
+                ? amount.toInt().toString()
+                : NumberFormat.currency(
+                    locale: 'id',
+                    symbol: 'Rp ',
+                    decimalDigits: 0,
+                  ).format(amount),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -412,7 +454,7 @@ class _ReportPageState extends State<ReportPage> {
                             itemBuilder: (context, index) {
                               final rental = rentals[index];
                               final status = rental['status'] == 'playing'
-                                  ? '(Bermain)'
+                                  ? '(Disewa)'
                                   : rental['status'] == 'returned'
                                       ? '(Selesai)'
                                       : '';
