@@ -9,6 +9,7 @@ import '../pages/activity.dart';
 import '../pages/detail-product.dart';
 import '../pages/report.dart';
 import '../pages/profile.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({super.key});
@@ -21,6 +22,9 @@ class _UserHomePageState extends State<UserHomePage> {
   int _selectedIndex = 0;
   final storage = const FlutterSecureStorage();
   Map<String, dynamic>? userData;
+  String userName = 'Guest';
+  String userRole = 'User';
+  bool isLoading = true;
 
   final List<Widget> _pages = [
     const HomeContent(),
@@ -35,6 +39,57 @@ class _UserHomePageState extends State<UserHomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadUserData();
     });
+    _checkNotifications();
+  }
+
+  void showToast(String message, String type) {
+    Color backgroundColor;
+    switch (type) {
+      case 'warning':
+        backgroundColor = Colors.orange;
+        break;
+      case 'late':
+        backgroundColor = Colors.red;
+        break;
+      case 'damage':
+        backgroundColor = Colors.red;
+        break;
+      default:
+        backgroundColor = Colors.grey;
+    }
+
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        backgroundColor: backgroundColor,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
+  Future<void> _checkNotifications() async {
+    try {
+      final userId = await storage.read(key: 'userId');
+      if (userId == null) return;
+
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/notifications/user/$userId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['data'] != null) {
+          final notifications = List<Map<String, dynamic>>.from(data['data']);
+          for (var notif in notifications) {
+            if (notif['is_read'] == 0) {
+              showToast(notif['title'], notif['type']);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking notifications: $e');
+    }
   }
 
   Future<void> _loadUserData() async {

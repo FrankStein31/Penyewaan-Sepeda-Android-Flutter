@@ -44,6 +44,7 @@ dependencies:
   image_picker: ^1.0.4
   path: ^1.8.3
   async: ^2.11.0
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_test:

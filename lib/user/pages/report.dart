@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'detail-report.dart';
 import 'package:intl/intl.dart';
 import '../../config.dart';
+import 'notification_page.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -282,7 +283,21 @@ class _ReportPageState extends State<ReportPage> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () {},
+                    onPressed: () async {
+                      final storage = FlutterSecureStorage();
+                      final id = await storage.read(key: 'userId');
+                      if (id != null) {
+                        if (mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  NotificationPage(userId: int.parse(id)),
+                            ),
+                          );
+                        }
+                      }
+                    },
                   ),
                 ],
               ),

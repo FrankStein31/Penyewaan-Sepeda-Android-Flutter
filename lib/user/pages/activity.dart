@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../config.dart';
 import 'detail-activity.dart';
+import 'notification_page.dart';
 
 class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key});
@@ -127,7 +128,20 @@ class _ActivityPageState extends State<ActivityPage> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () {},
+                    onPressed: () async {
+                      final id = await storage.read(key: 'userId');
+                      if (id != null) {
+                        if (mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  NotificationPage(userId: int.parse(id)),
+                            ),
+                          );
+                        }
+                      }
+                    },
                   ),
                 ],
               ),

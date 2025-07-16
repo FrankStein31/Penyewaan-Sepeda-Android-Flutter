@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class NotificationPage extends StatefulWidget {
   final int userId;
@@ -22,6 +23,31 @@ class _NotificationPageState extends State<NotificationPage> {
     _loadNotifications();
   }
 
+  void showToast(String message, String type) {
+    Color backgroundColor;
+    switch (type) {
+      case 'warning':
+        backgroundColor = Colors.orange;
+        break;
+      case 'late':
+        backgroundColor = Colors.red;
+        break;
+      case 'damage':
+        backgroundColor = Colors.red;
+        break;
+      default:
+        backgroundColor = Colors.grey;
+    }
+
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        backgroundColor: backgroundColor,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
     try {
@@ -34,6 +60,13 @@ class _NotificationPageState extends State<NotificationPage> {
         setState(() {
           _notifications = data['data'];
         });
+
+        // Show toast for unread notifications
+        for (var notif in data['data']) {
+          if (notif['is_read'] == 0) {
+            showToast(notif['title'], notif['type']);
+          }
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
