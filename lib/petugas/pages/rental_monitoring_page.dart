@@ -71,7 +71,7 @@ class _RentalMonitoringPageState extends State<RentalMonitoringPage> {
     if (dateTimeStr == null) return '-';
     final utc = DateTime.parse(dateTimeStr).toUtc();
     final jakarta = utc.add(const Duration(hours: 7));
-    return DateFormat('dd MMM yyyy, HH:mm').format(jakarta) + ' WIB';
+    return '${DateFormat('dd MMM yyyy, HH:mm').format(jakarta)} WIB';
   }
 
   @override

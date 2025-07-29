@@ -284,7 +284,7 @@ class _ReportPageState extends State<ReportPage> {
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
                     onPressed: () async {
-                      final storage = FlutterSecureStorage();
+                      const storage = FlutterSecureStorage();
                       final id = await storage.read(key: 'userId');
                       if (id != null) {
                         if (mounted) {
@@ -455,7 +455,7 @@ class _ReportPageState extends State<ReportPage> {
     final isPenaltyPaid = penaltyStatus == 'paid';
     final isSewaPaid = paymentStatus == 'paid';
     debugPrint(
-        'report.dart | penalty_payment_status: ${penaltyStatus} | isPenaltyPaid: ${isPenaltyPaid} | payment_status: ${paymentStatus} | isSewaPaid: ${isSewaPaid}');
+        'report.dart | penalty_payment_status: $penaltyStatus | isPenaltyPaid: $isPenaltyPaid | payment_status: $paymentStatus | isSewaPaid: $isSewaPaid');
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),

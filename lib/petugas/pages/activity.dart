@@ -389,7 +389,7 @@ class _ActivityPageState extends State<ActivityPage> {
                       if (isLate) ...[
                         const SizedBox(height: 4),
                         Text(
-                          'Denda: Rp${NumberFormat('#,###').format(penalty)} (${lateMinutes} menit x Rp1.000)',
+                          'Denda: Rp${NumberFormat('#,###').format(penalty)} ($lateMinutes menit x Rp1.000)',
                           style: const TextStyle(
                             color: Colors.red,
                             fontSize: 13,

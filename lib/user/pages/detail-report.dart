@@ -531,7 +531,7 @@ class _DetailReportPageState extends State<DetailReportPage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Keterlambatan: ${lateMinutes} menit',
+                                          'Keterlambatan: $lateMinutes menit',
                                           style: TextStyle(
                                             color: Colors.red[700],
                                             fontSize: 12,
@@ -545,7 +545,7 @@ class _DetailReportPageState extends State<DetailReportPage> {
                                           ),
                                         ),
                                         Text(
-                                          'Total: ${lateMinutes} x Rp1.000 = Rp${NumberFormat('#,###').format(lateMinutes * 1000)}',
+                                          'Total: $lateMinutes x Rp1.000 = Rp${NumberFormat('#,###').format(lateMinutes * 1000)}',
                                           style: TextStyle(
                                             color: Colors.red[700],
                                             fontSize: 12,

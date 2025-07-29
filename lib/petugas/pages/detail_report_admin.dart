@@ -29,7 +29,7 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
       final res = await http.get(url);
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        debugPrint('DETAIL RENTAL ADMIN: ' + data.toString());
+        debugPrint('DETAIL RENTAL ADMIN: $data');
         setState(() {
           detail = data['data'];
           isLoading = false;
@@ -38,7 +38,7 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
         setState(() => isLoading = false);
       }
     } catch (e) {
-      debugPrint('ERROR DETAIL RENTAL ADMIN: ' + e.toString());
+      debugPrint('ERROR DETAIL RENTAL ADMIN: $e');
       setState(() => isLoading = false);
     }
   }
@@ -58,17 +58,17 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
     final address = d['user_address'] ?? d['address'] ?? '-';
     final ktp = d['user_ktp_image'] ?? d['ktp_image'];
     final product = d['product_name'] ?? '-';
-    String _toJakarta(String? dt) {
+    String toJakarta(String? dt) {
       if (dt == null) return '-';
       final utc = DateTime.parse(dt).toUtc();
       final jakarta = utc.add(const Duration(hours: 7));
-      return DateFormat('dd MMM yyyy, HH:mm').format(jakarta) + ' WIB';
+      return '${DateFormat('dd MMM yyyy, HH:mm').format(jakarta)} WIB';
     }
 
-    final start = d['start_time'] != null ? _toJakarta(d['start_time']) : '-';
-    final end = d['end_time'] != null ? _toJakarta(d['end_time']) : '-';
+    final start = d['start_time'] != null ? toJakarta(d['start_time']) : '-';
+    final end = d['end_time'] != null ? toJakarta(d['end_time']) : '-';
     final returnTime =
-        d['return_time'] != null ? _toJakarta(d['return_time']) : '-';
+        d['return_time'] != null ? toJakarta(d['return_time']) : '-';
     final status = d['status'] == 'playing'
         ? 'Disewa'
         : d['status'] == 'returned'
@@ -101,7 +101,7 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
             Row(
               children: [
                 const Icon(Icons.person, size: 18),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text('Penyewa: $penyewa'),
               ],
             ),
@@ -109,7 +109,7 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
             Row(
               children: [
                 const Icon(Icons.phone, size: 18),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text('No HP: $phone'),
               ],
             ),
@@ -117,7 +117,7 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
             Row(
               children: [
                 const Icon(Icons.credit_card, size: 18),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text('NIK: $nik'),
               ],
             ),
@@ -125,7 +125,7 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
             Row(
               children: [
                 const Icon(Icons.home, size: 18),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Expanded(
                     child: Text('Alamat: $address',
                         maxLines: 2, overflow: TextOverflow.ellipsis)),
@@ -136,16 +136,102 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
               Row(
                 children: [
                   const Icon(Icons.image, size: 18),
-                  SizedBox(width: 6),
-                  Text('Foto KTP:'),
-                  SizedBox(width: 8),
-                  Image.network(
-                      '${Config.baseUrl.replaceAll('/api', '')}/' + ktp,
-                      width: 80,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (c, e, s) =>
-                          const Icon(Icons.broken_image)),
+                  const SizedBox(width: 6),
+                  const Text('Foto KTP:'),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            child: Container(
+                              width: double.infinity,
+                              height: 400,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF8B5CF6),
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        topRight: Radius.circular(12),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          'Foto KTP',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.close,
+                                              color: Colors.white),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      child: Image.network(
+                                        '${Config.baseUrl.replaceAll('/api', '')}/' +
+                                            ktp,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (c, e, s) => const Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.broken_image,
+                                                  size: 64, color: Colors.grey),
+                                              SizedBox(height: 16),
+                                              Text(
+                                                'Gagal memuat gambar',
+                                                style: TextStyle(
+                                                    color: Colors.grey),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Image.network(
+                        '${Config.baseUrl.replaceAll('/api', '')}/' + ktp,
+                        width: 80,
+                        height: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (c, e, s) =>
+                            const Icon(Icons.broken_image),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -186,7 +272,7 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
                 'Denda Terlambat',
                 penalty == 0
                     ? 'Tidak Ada Denda'
-                    : 'IDR ' + NumberFormat('#,###').format(penalty),
+                    : 'IDR ${NumberFormat('#,###').format(penalty)}',
                 color: Colors.orange),
             _buildRow('Denda Rusak', damage, color: Colors.red),
             _buildRow('Denda Hilang', lost, color: Colors.purple),

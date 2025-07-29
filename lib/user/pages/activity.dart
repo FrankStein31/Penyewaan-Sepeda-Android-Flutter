@@ -252,7 +252,7 @@ class _ActivityPageState extends State<ActivityPage> {
                         final isSewaPaid = paymentStatus == 'paid';
                         final penaltyAmount = rental['penalty_amount'] ?? 0;
                         debugPrint(
-                            'activity.dart | penalty_payment_status: ${penaltyStatus} | isPenaltyPaid: ${isPenaltyPaid} | payment_status: ${paymentStatus} | isSewaPaid: ${isSewaPaid}');
+                            'activity.dart | penalty_payment_status: $penaltyStatus | isPenaltyPaid: $isPenaltyPaid | payment_status: $paymentStatus | isSewaPaid: $isSewaPaid');
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(

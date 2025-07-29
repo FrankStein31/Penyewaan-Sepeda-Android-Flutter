@@ -483,10 +483,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                                   const Icon(Icons.error),
                                         ),
                                       )
-                                    : Column(
+                                    : const Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
-                                        children: const [
+                                        children: [
                                           Icon(Icons.add_photo_alternate,
                                               size: 40,
                                               color: Color(0xFF8B5CF6)),
