@@ -12,7 +12,7 @@ class ProductStatusPage extends StatefulWidget {
 
 class _ProductStatusPageState extends State<ProductStatusPage> {
   List<dynamic> _products = [];
-  final String _selectedStatus = 'semua';
+  String _selectedStatus = 'semua';
   bool _isLoading = true;
 
   // Tambah fungsi untuk update status

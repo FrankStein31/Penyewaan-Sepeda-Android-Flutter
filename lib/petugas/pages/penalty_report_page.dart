@@ -205,10 +205,11 @@ class _PenaltyReportPageState extends State<PenaltyReportPage> {
                                 if (report['description'] != null)
                                   Text('Keterangan: ${report['description']}'),
                                 Text(
-                                  'Tanggal: ${DateFormat('dd MMM yyyy, HH:mm', 'id_ID')
+                                  'Tanggal: ' +
+                                      DateFormat('dd MMM yyyy, HH:mm', 'id_ID')
                                           .format(DateTime.parse(
                                                   report['created_at'])
-                                              .add(const Duration(hours: 7)))}',
+                                              .add(const Duration(hours: 7))),
                                 ),
                               ],
                             ),

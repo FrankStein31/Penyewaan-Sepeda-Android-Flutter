@@ -31,7 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
     try {
-      const userId = '1'; // Ganti dengan user ID yang sesuai
+      final userId = '1'; // Ganti dengan user ID yang sesuai
       final response = await http.get(
         Uri.parse('${Config.baseUrl}/users/$userId'),
       );
@@ -69,7 +69,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _isLoading = true);
     try {
-      const userId = '1'; // Ganti dengan user ID yang sesuai
+      final userId = '1'; // Ganti dengan user ID yang sesuai
       final uri = Uri.parse('${Config.baseUrl}/users/$userId/profile');
 
       var request = http.MultipartRequest('PUT', uri)

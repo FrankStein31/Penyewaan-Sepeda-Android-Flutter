@@ -88,7 +88,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
             _updateProgress();
             _controller.forward();
           });
-          debugPrint('DETAIL ACTIVITY: ${data['data']}');
+          debugPrint('DETAIL ACTIVITY: ' + data['data'].toString());
         }
       }
     } catch (e) {
@@ -167,7 +167,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                           Row(
                             children: [
                               const Icon(Icons.person, size: 18),
-                              const SizedBox(width: 6),
+                              SizedBox(width: 6),
                               Text('Penyewa: $penyewa'),
                             ],
                           ),
@@ -175,7 +175,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                           Row(
                             children: [
                               const Icon(Icons.phone, size: 18),
-                              const SizedBox(width: 6),
+                              SizedBox(width: 6),
                               Text('No HP: $phone'),
                             ],
                           ),
@@ -183,7 +183,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                           Row(
                             children: [
                               const Icon(Icons.credit_card, size: 18),
-                              const SizedBox(width: 6),
+                              SizedBox(width: 6),
                               Text('NIK: $nik'),
                             ],
                           ),
@@ -191,7 +191,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                           Row(
                             children: [
                               const Icon(Icons.home, size: 18),
-                              const SizedBox(width: 6),
+                              SizedBox(width: 6),
                               Expanded(
                                   child: Text('Alamat: $address',
                                       maxLines: 2,
@@ -203,125 +203,17 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                             Row(
                               children: [
                                 const Icon(Icons.image, size: 18),
-                                const SizedBox(width: 6),
-                                const Text('Foto KTP:'),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return Dialog(
-                                          child: Container(
-                                            width: double.infinity,
-                                            height: 400,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: Column(
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.all(16),
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                    color: Color(0xFF8B5CF6),
-                                                    borderRadius:
-                                                        BorderRadius.only(
-                                                      topLeft:
-                                                          Radius.circular(12),
-                                                      topRight:
-                                                          Radius.circular(12),
-                                                    ),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      const Text(
-                                                        'Foto KTP',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 18,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      IconButton(
-                                                        icon: const Icon(
-                                                            Icons.close,
-                                                            color:
-                                                                Colors.white),
-                                                        onPressed: () =>
-                                                            Navigator.pop(
-                                                                context),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: Container(
-                                                    width: double.infinity,
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            16),
-                                                    child: Image.network(
-                                                      '${Config.baseUrl.replaceAll('/api', '')}/' +
-                                                          ktp,
-                                                      fit: BoxFit.contain,
-                                                      errorBuilder: (c, e, s) =>
-                                                          const Center(
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          children: [
-                                                            Icon(
-                                                                Icons
-                                                                    .broken_image,
-                                                                size: 64,
-                                                                color: Colors
-                                                                    .grey),
-                                                            SizedBox(
-                                                                height: 16),
-                                                            Text(
-                                                              'Gagal memuat gambar',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .grey),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.grey.shade300),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Image.network(
-                                      '${Config.baseUrl.replaceAll('/api', '')}/' +
-                                          ktp,
-                                      width: 80,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (c, e, s) =>
-                                          const Icon(Icons.broken_image),
-                                    ),
-                                  ),
-                                ),
+                                SizedBox(width: 6),
+                                Text('Foto KTP:'),
+                                SizedBox(width: 8),
+                                Image.network(
+                                    '${Config.baseUrl.replaceAll('/api', '')}/' +
+                                        ktp,
+                                    width: 80,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (c, e, s) =>
+                                        const Icon(Icons.broken_image)),
                               ],
                             ),
                           ],
