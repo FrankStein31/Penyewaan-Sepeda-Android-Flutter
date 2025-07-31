@@ -25,6 +25,7 @@ class _ReportPageState extends State<ReportPage> {
   double totalPenaltyIncome = 0;
   double totalDamageIncome = 0;
   double totalLostIncome = 0;
+  double totalRentalIncome = 0;
 
   @override
   void initState() {
@@ -52,7 +53,7 @@ class _ReportPageState extends State<ReportPage> {
 
   void _calculateSummary() {
     Set<String> uniqueUsers = {};
-    double income = 0;
+    double rentalIncome = 0; // Pendapatan dari sewa saja
     double penaltyIncome = 0;
     double damageIncome = 0;
     double lostIncome = 0;
@@ -61,8 +62,10 @@ class _ReportPageState extends State<ReportPage> {
       // Add user to unique users set
       uniqueUsers.add(rental['customer_name'] ?? '');
 
-      // Calculate total income (including penalties)
-      income += (rental['total_amount'] ?? 0);
+      // Calculate rental income (biaya sewa saja)
+      rentalIncome += (rental['total_amount'] ?? 0);
+
+      // Calculate penalty breakdown
       penaltyIncome += (rental['penalty_amount'] ?? 0);
       damageIncome += (rental['damage_penalty'] ?? 0);
       lostIncome += (rental['lost_penalty'] ?? 0);
@@ -70,11 +73,25 @@ class _ReportPageState extends State<ReportPage> {
 
     setState(() {
       totalUsers = uniqueUsers.length;
-      totalIncome = income;
+      totalIncome = rentalIncome +
+          penaltyIncome +
+          damageIncome +
+          lostIncome; // Total keseluruhan
+      totalRentalIncome = rentalIncome; // Pendapatan sewa saja
       totalPenaltyIncome = penaltyIncome;
       totalDamageIncome = damageIncome;
       totalLostIncome = lostIncome;
     });
+
+    debugPrint('💰 Total Income Calculation:');
+    debugPrint(
+        'Rental Income: Rp${NumberFormat('#,###').format(rentalIncome)}');
+    debugPrint('Total Income: Rp${NumberFormat('#,###').format(totalIncome)}');
+    debugPrint(
+        'Penalty Income: Rp${NumberFormat('#,###').format(penaltyIncome)}');
+    debugPrint(
+        'Damage Income: Rp${NumberFormat('#,###').format(damageIncome)}');
+    debugPrint('Lost Income: Rp${NumberFormat('#,###').format(lostIncome)}');
   }
 
   Future<void> fetchRentals() async {
@@ -230,6 +247,28 @@ class _ReportPageState extends State<ReportPage> {
             children: [
               Expanded(
                 child: _buildIncomeCard(
+                  'Pendapatan Sewa',
+                  totalRentalIncome,
+                  Icons.directions_bike,
+                  Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildIncomeCard(
+                  'Total Denda',
+                  totalPenaltyIncome + totalDamageIncome + totalLostIncome,
+                  Icons.warning,
+                  Colors.deepOrange,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildIncomeCard(
                   'Denda Terlambat',
                   totalPenaltyIncome,
                   Icons.timer_off,
@@ -261,10 +300,11 @@ class _ReportPageState extends State<ReportPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildIncomeCard(
-                  'Total Denda',
-                  totalPenaltyIncome + totalDamageIncome + totalLostIncome,
-                  Icons.warning,
-                  Colors.deepOrange,
+                  'Total Pengguna',
+                  totalUsers.toDouble(),
+                  Icons.people,
+                  const Color(0xFF8B5CF6),
+                  isCount: true,
                 ),
               ),
             ],
@@ -460,9 +500,12 @@ class _ReportPageState extends State<ReportPage> {
                                       ? '(Selesai)'
                                       : '';
 
-                              final amount = rental['penalty_amount'] > 0
-                                  ? 'IDR ${NumberFormat('#,###').format(rental['penalty_amount'])}'
-                                  : 'IDR ${NumberFormat('#,###').format(rental['total_amount'])}';
+                              final amount = (rental['total_amount'] ?? 0) +
+                                  (rental['penalty_amount'] ?? 0) +
+                                  (rental['damage_penalty'] ?? 0) +
+                                  (rental['lost_penalty'] ?? 0);
+                              final amountText =
+                                  'IDR ${NumberFormat('#,###').format(amount)}';
 
                               final time = '${rental['rental_hours']} Jam';
 
@@ -486,7 +529,7 @@ class _ReportPageState extends State<ReportPage> {
                                 child: _buildReportItem(
                                   rental['product_name'] ?? 'Unknown',
                                   status,
-                                  amount,
+                                  amountText,
                                   time,
                                   rental['status'] == 'playing' ? '🚲' : '✅',
                                 ),

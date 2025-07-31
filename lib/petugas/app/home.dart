@@ -123,8 +123,79 @@ class _HomePageState extends State<HomePage> {
 }
 
 // Pindahkan konten home ke widget terpisah
-class HomeContent extends StatelessWidget {
+class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  String selectedCategory = 'Semua';
+  String selectedSort = 'Nama';
+  List<String> categories = ['Semua'];
+  List<Map<String, dynamic>> allProducts = [];
+  List<Map<String, dynamic>> filteredProducts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    final products = await _fetchProducts();
+    setState(() {
+      allProducts = products;
+      filteredProducts = products;
+
+      // Extract unique categories
+      final Set<String> uniqueCategories = {'Semua'};
+      for (var product in products) {
+        if (product['category_name'] != null) {
+          uniqueCategories.add(product['category_name']);
+        }
+      }
+      categories = uniqueCategories.toList();
+    });
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    List<Map<String, dynamic>> filtered = List.from(allProducts);
+
+    // Filter by category
+    if (selectedCategory != 'Semua') {
+      filtered = filtered
+          .where((product) => product['category_name'] == selectedCategory)
+          .toList();
+    }
+
+    // Sort by selected criteria
+    switch (selectedSort) {
+      case 'Nama':
+        filtered.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
+        break;
+      case 'Harga Terendah':
+        filtered.sort((a, b) => (a['price'] ?? 0).compareTo(b['price'] ?? 0));
+        break;
+      case 'Harga Tertinggi':
+        filtered.sort((a, b) => (b['price'] ?? 0).compareTo(a['price'] ?? 0));
+        break;
+      case 'Stok Terbanyak':
+        filtered.sort((a, b) =>
+            (b['stock_available'] ?? 0).compareTo(a['stock_available'] ?? 0));
+        break;
+      case 'Stok Terdikit':
+        filtered.sort((a, b) =>
+            (a['stock_available'] ?? 0).compareTo(b['stock_available'] ?? 0));
+        break;
+    }
+
+    setState(() {
+      filteredProducts = filtered;
+    });
+  }
 
   String formatRupiah(dynamic number) {
     if (number == null) return 'IDR 0';
@@ -428,37 +499,120 @@ class HomeContent extends StatelessWidget {
                             ],
                           ),
 
+                          // Filter and Sort Section
+                          Container(
+                            margin: const EdgeInsets.symmetric(vertical: 12),
+                            child: Column(
+                              children: [
+                                // Category Filter
+                                Container(
+                                  height: 40,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: categories.length,
+                                    itemBuilder: (context, index) {
+                                      final category = categories[index];
+                                      final isSelected =
+                                          selectedCategory == category;
+                                      return Container(
+                                        margin: const EdgeInsets.only(right: 8),
+                                        child: FilterChip(
+                                          label: Text(category),
+                                          selected: isSelected,
+                                          onSelected: (selected) {
+                                            setState(() {
+                                              selectedCategory = category;
+                                            });
+                                            _applyFilters();
+                                          },
+                                          backgroundColor: Colors.grey[200],
+                                          selectedColor:
+                                              const Color(0xFF8B5CF6),
+                                          labelStyle: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.black87,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Sort Dropdown
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Urutkan: ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.grey[300]!),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: DropdownButtonHideUnderline(
+                                          child: DropdownButton<String>(
+                                            value: selectedSort,
+                                            isExpanded: true,
+                                            items: [
+                                              'Nama',
+                                              'Harga Terendah',
+                                              'Harga Tertinggi',
+                                              'Stok Terbanyak',
+                                              'Stok Terdikit',
+                                            ].map((String value) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Text(value),
+                                              );
+                                            }).toList(),
+                                            onChanged: (String? newValue) {
+                                              if (newValue != null) {
+                                                setState(() {
+                                                  selectedSort = newValue;
+                                                });
+                                                _applyFilters();
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
                           // Customer list with FutureBuilder
                           Expanded(
-                            child: FutureBuilder<List<Map<String, dynamic>>>(
-                              future: _fetchProducts(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                      child: CircularProgressIndicator());
-                                }
-
-                                if (snapshot.hasError) {
-                                  return Center(
-                                      child: Text('Error: ${snapshot.error}'));
-                                }
-
-                                final products = snapshot.data ?? [];
-                                if (products.isEmpty) {
-                                  return const Center(
-                                      child: Text('No products found'));
-                                }
-
-                                return ListView.builder(
-                                  itemCount: products.length,
-                                  itemBuilder: (context, index) {
-                                    final product = products[index];
-                                    return _buildProductItem(context, product);
-                                  },
-                                );
-                              },
-                            ),
+                            child: filteredProducts.isEmpty
+                                ? const Center(
+                                    child:
+                                        Text('Tidak ada produk yang ditemukan'))
+                                : ListView.builder(
+                                    itemCount: filteredProducts.length,
+                                    itemBuilder: (context, index) {
+                                      final product = filteredProducts[index];
+                                      return _buildProductItem(
+                                          context, product);
+                                    },
+                                  ),
                           ),
                         ],
                       ),
