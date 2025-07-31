@@ -115,6 +115,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
     final nik = rentalDetails?['user_nik'] ?? '-';
     final address = rentalDetails?['user_address'] ?? '-';
     final ktp = rentalDetails?['user_ktp_image'];
+    final profile = rentalDetails?['user_profile_image'];
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -314,6 +315,133 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                                     child: Image.network(
                                       '${Config.baseUrl.replaceAll('/api', '')}/' +
                                           ktp,
+                                      width: 80,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (c, e, s) =>
+                                          const Icon(Icons.broken_image),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (profile != null && profile != '') ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.face, size: 18),
+                                const SizedBox(width: 6),
+                                const Text('Foto Profile:'),
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return Dialog(
+                                          child: Container(
+                                            width: double.infinity,
+                                            height: 400,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(16),
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                    color: Color(0xFF8B5CF6),
+                                                    borderRadius:
+                                                        BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(12),
+                                                      topRight:
+                                                          Radius.circular(12),
+                                                    ),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      const Text(
+                                                        'Foto Profile',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      IconButton(
+                                                        icon: const Icon(
+                                                            Icons.close,
+                                                            color:
+                                                                Colors.white),
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Container(
+                                                    width: double.infinity,
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            16),
+                                                    child: Image.network(
+                                                      '${Config.baseUrl.replaceAll('/api', '')}/' +
+                                                          profile,
+                                                      fit: BoxFit.contain,
+                                                      errorBuilder: (c, e, s) =>
+                                                          const Center(
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Icon(
+                                                                Icons
+                                                                    .broken_image,
+                                                                size: 64,
+                                                                color: Colors
+                                                                    .grey),
+                                                            SizedBox(
+                                                                height: 16),
+                                                            Text(
+                                                              'Gagal memuat gambar',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .grey),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.grey.shade300),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Image.network(
+                                      '${Config.baseUrl.replaceAll('/api', '')}/' +
+                                          profile,
                                       width: 80,
                                       height: 50,
                                       fit: BoxFit.cover,

@@ -30,6 +30,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? _userId;
   Map<String, dynamic>? _userData;
   File? _ktpImage;
+  File? _profileImage;
   bool _isPasswordMode = false;
 
   @override
@@ -46,7 +47,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       // Get user data from API
       final response = await http.get(
-        Uri.parse('${Config.apiUrl}/users/$userId'),
+        Uri.parse('${Config.baseUrl}/users/$userId'),
       );
 
       final data = json.decode(response.body);
@@ -81,6 +82,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  Future<void> _pickProfileImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _profileImage = File(image.path);
+      });
+    }
+  }
+
   Future<void> _updatePassword() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -96,7 +108,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
 
       final response = await http.put(
-        Uri.parse('${Config.apiUrl}/users/$_userId/password'),
+        Uri.parse('${Config.baseUrl}/users/$_userId/password'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -146,7 +158,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         if (_userId == null) throw Exception('User ID not found');
       }
 
-      var uri = Uri.parse('${Config.apiUrl}/users/$_userId/profile');
+      var uri = Uri.parse('${Config.baseUrl}/users/$_userId/profile');
       var request = http.MultipartRequest('PUT', uri);
 
       request.fields['phone'] = _phoneController.text;
@@ -171,6 +183,64 @@ class _EditProfilePageState extends State<EditProfilePage> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile berhasil diperbarui')),
+        );
+        Navigator.pop(context, true); // Return true to indicate success
+      } else {
+        setState(() {
+          _errorMessage = data['message'] ?? 'Terjadi kesalahan';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Terjadi kesalahan: ${e.toString()}';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _updateProfileImage() async {
+    if (_profileImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih foto profile terlebih dahulu')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      if (_userId == null) {
+        await _getUserData();
+        if (_userId == null) throw Exception('User ID not found');
+      }
+
+      var uri = Uri.parse('${Config.baseUrl}/users/$_userId/profile-image');
+      var request = http.MultipartRequest('PUT', uri);
+
+      var stream =
+          http.ByteStream(DelegatingStream.typed(_profileImage!.openRead()));
+      var length = await _profileImage!.length();
+      var multipartFile = http.MultipartFile('profile_image', stream, length,
+          filename: path_lib.basename(_profileImage!.path),
+          contentType: MediaType('image', 'jpeg'));
+      request.files.add(multipartFile);
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+      var data = json.decode(responseBody);
+
+      if (response.statusCode == 200) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto profile berhasil diperbarui')),
         );
         Navigator.pop(context, true); // Return true to indicate success
       } else {
@@ -446,6 +516,69 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
+                          'Foto Profile',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF8B5CF6),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        InkWell(
+                          onTap: _pickProfileImage,
+                          child: Container(
+                            width: double.infinity,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border:
+                                  Border.all(color: const Color(0xFFDEE2E6)),
+                            ),
+                            child: _profileImage != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(_profileImage!,
+                                        fit: BoxFit.cover),
+                                  )
+                                : _userData != null &&
+                                        _userData!['profile_image'] != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          '${Config.baseUrl}/${_userData!['profile_image']}',
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(Icons.error),
+                                        ),
+                                      )
+                                    : Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: const [
+                                          Icon(Icons.add_a_photo,
+                                              size: 40,
+                                              color: Color(0xFF8B5CF6)),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            'Upload Foto Profile',
+                                            style: TextStyle(
+                                              color: Color(0xFF8B5CF6),
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
                           'Foto KTP',
                           style: TextStyle(
                             fontSize: 14,
@@ -540,6 +673,38 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             ),
                     ),
                   ),
+                  if (!_isPasswordMode && _profileImage != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _updateProfileImage,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          elevation: 0,
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Text(
+                                'Update Foto Profile',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

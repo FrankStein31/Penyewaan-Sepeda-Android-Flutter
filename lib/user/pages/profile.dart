@@ -18,6 +18,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String userName = 'Guest';
   String userRole = 'User';
   final _storage = const FlutterSecureStorage();
+  Map<String, dynamic>? userProfile;
 
   // Statistics
   int totalRentals = 0;
@@ -35,87 +36,31 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final username = await _storage.read(key: 'username');
       final level = await _storage.read(key: 'level');
-      final token = await _storage.read(key: 'token');
+      final userId = await _storage.read(key: 'userId');
 
       setState(() {
         userName = username ?? 'Guest';
         userRole = level ?? 'User';
       });
 
-      // Fetch user rentals and calculate statistics
-      if (username != null && token != null) {
+      // Fetch user profile data
+      if (userId != null) {
         try {
           final response = await http.get(
-            Uri.parse('${Config.apiUrl}/rentals'),
-            headers: {
-              'Authorization': 'Bearer $token',
-            },
+            Uri.parse('${Config.baseUrl}/users/$userId'),
+            headers: {'Content-Type': 'application/json'},
           );
 
           if (response.statusCode == 200) {
-            final List<dynamic> rentals = json.decode(response.body);
-            int active = 0;
-            int penalties = 0;
-            int unpaid = 0;
-
-            for (var rental in rentals) {
-              final String rentalId = rental['id'].toString();
-              
-              // Check if rental is active
-              if (rental['returnDate'] == null && rental['stopDate'] == null) {
-                // Get payment status for active rental
-                final paymentResponse = await http.get(
-                  Uri.parse('${Config.apiUrl}/rentals/$rentalId/payment'),
-                  headers: {
-                    'Authorization': 'Bearer $token',
-                  },
-                );
-
-                if (paymentResponse.statusCode == 200) {
-                  final paymentData = json.decode(paymentResponse.body);
-                  // Only count as active if payment is completed
-                  if (paymentData['status'] == 'settlement' || 
-                      paymentData['status'] == 'capture') {
-                    active++;
-                  }
-                }
-              }
-              
-              // Check penalty status
-              if (rental['penalty'] != null) {
-                penalties++;
-                // Get penalty payment status
-                final penaltyResponse = await http.get(
-                  Uri.parse('${Config.apiUrl}/rentals/$rentalId/penalty/payment/status'),
-                  headers: {
-                    'Authorization': 'Bearer $token',
-                  },
-                );
-
-                if (penaltyResponse.statusCode == 200) {
-                  final penaltyData = json.decode(penaltyResponse.body);
-                  // Count as unpaid if no payment or payment not completed
-                  if (penaltyData['status'] == null || 
-                      (penaltyData['status'] != 'settlement' && 
-                       penaltyData['status'] != 'capture')) {
-                    unpaid++;
-                  }
-                } else {
-                  // If can't get status, assume unpaid
-                  unpaid++;
-                }
-              }
+            final data = jsonDecode(response.body);
+            if (data['status'] == true && data['data'] != null) {
+              setState(() {
+                userProfile = data['data'];
+              });
             }
-
-            setState(() {
-              totalRentals = rentals.length;
-              activeRentals = active;
-              totalPenalties = penalties;
-              unpaidPenalties = unpaid;
-            });
           }
         } catch (e) {
-          debugPrint('Error fetching rentals and payment data: $e');
+          debugPrint('Error fetching user profile: $e');
         }
       }
 
@@ -123,6 +68,78 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       debugPrint('Error loading user data: $e');
     }
+  }
+
+  void _showImageDialog(String imageUrl, String title) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            width: double.infinity,
+            height: 400,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF8B5CF6),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    child: Image.network(
+                      '${Config.baseUrl.replaceAll('/api', '')}/' + imageUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (c, e, s) => const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.broken_image,
+                                size: 64, color: Colors.grey),
+                            SizedBox(height: 16),
+                            Text(
+                              'Gagal memuat gambar',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _handleLogout(BuildContext context) async {
@@ -164,13 +181,35 @@ class _ProfilePageState extends State<ProfilePage> {
                 // Profile Picture and Info
                 Column(
                   children: [
-                    const CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Color(0xFF8B5CF6),
-                      child: Icon(
-                        Icons.person,
-                        size: 40,
-                        color: Colors.white,
+                    GestureDetector(
+                      onTap: () {
+                        if (userProfile?['profile_image'] != null &&
+                            userProfile!['profile_image']
+                                .toString()
+                                .isNotEmpty) {
+                          _showImageDialog(
+                              userProfile!['profile_image'], 'Foto Profile');
+                        }
+                      },
+                      child: CircleAvatar(
+                        radius: 40,
+                        backgroundColor: const Color(0xFF8B5CF6),
+                        backgroundImage: userProfile?['profile_image'] !=
+                                    null &&
+                                userProfile!['profile_image']
+                                    .toString()
+                                    .isNotEmpty
+                            ? NetworkImage(
+                                '${Config.baseUrl.replaceAll('/api', '')}/${userProfile!['profile_image']}')
+                            : null,
+                        child: userProfile?['profile_image'] == null ||
+                                userProfile!['profile_image'].toString().isEmpty
+                            ? const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Colors.white,
+                              )
+                            : null,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -192,14 +231,105 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 25),
 
+                // User Details Section
+                if (userProfile != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Informasi Pribadi',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (userProfile!['phone'] != null) ...[
+                          Row(
+                            children: [
+                              const Icon(Icons.phone, size: 18),
+                              const SizedBox(width: 8),
+                              Text('No HP: ${userProfile!['phone']}'),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        if (userProfile!['nik'] != null) ...[
+                          Row(
+                            children: [
+                              const Icon(Icons.credit_card, size: 18),
+                              const SizedBox(width: 8),
+                              Text('NIK: ${userProfile!['nik']}'),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        if (userProfile!['address'] != null) ...[
+                          Row(
+                            children: [
+                              const Icon(Icons.home, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child:
+                                    Text('Alamat: ${userProfile!['address']}'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        if (userProfile!['ktp_image'] != null &&
+                            userProfile!['ktp_image']
+                                .toString()
+                                .isNotEmpty) ...[
+                          Row(
+                            children: [
+                              const Icon(Icons.image, size: 18),
+                              const SizedBox(width: 8),
+                              const Text('Foto KTP:'),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => _showImageDialog(
+                                    userProfile!['ktp_image'], 'Foto KTP'),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border:
+                                        Border.all(color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Image.network(
+                                    '${Config.baseUrl.replaceAll('/api', '')}/${userProfile!['ktp_image']}',
+                                    width: 80,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (c, e, s) =>
+                                        const Icon(Icons.broken_image),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
 
                 // Menu Items
                 _buildMenuItem(Icons.person_outline, 'Edit Profile',
                     onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => EditProfilePage(userData: widget.userData)),
-                    )),
-                 _buildMenuItem(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  EditProfilePage(userData: widget.userData)),
+                        )),
+                _buildMenuItem(
                   Icons.logout,
                   'Logout',
                   isLogout: true,
@@ -248,7 +378,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, {Color? color}) {
+  Widget _buildStatCard(String title, String value, IconData icon,
+      {Color? color}) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
       decoration: BoxDecoration(
@@ -295,9 +426,14 @@ class _ProfilePageState extends State<ProfilePage> {
         final data = jsonDecode(response.body);
         if (data['status'] == true && data['data'] != null) {
           final allRentals = List<Map<String, dynamic>>.from(data['data']);
-          final userRentals = allRentals.where((r) => (r['customer_name'] ?? '').toString().toLowerCase() == name.toLowerCase()).toList();
+          final userRentals = allRentals
+              .where((r) =>
+                  (r['customer_name'] ?? '').toString().toLowerCase() ==
+                  name.toLowerCase())
+              .toList();
           final total = userRentals.length;
-          final amount = userRentals.fold(0, (sum, r) => sum + ((r['total_amount'] ?? 0) as int));
+          final amount = userRentals.fold(
+              0, (sum, r) => sum + ((r['total_amount'] ?? 0) as int));
           return {'total': total, 'amount': amount};
         }
       }
