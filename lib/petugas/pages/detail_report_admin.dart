@@ -59,6 +59,7 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
     final ktp = d['user_ktp_image'] ?? d['ktp_image'];
     final profile = d['user_profile_image'] ?? d['profile_image'];
     final product = d['product_name'] ?? '-';
+    final serialNumber = d['serial_number'] ?? '-';
     String toJakarta(String? dt) {
       if (dt == null) return '-';
       final utc = DateTime.parse(dt).toUtc();
@@ -360,6 +361,14 @@ class _DetailReportAdminPageState extends State<DetailReportAdminPage> {
               children: [
                 const Text('Waktu Pengembalian:'),
                 Text(returnTime),
+              ],
+            ),
+            const Divider(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Nomor Seri Sepeda:'),
+                Text(serialNumber),
               ],
             ),
             const Divider(height: 32),

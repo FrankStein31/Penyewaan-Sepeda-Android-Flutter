@@ -354,6 +354,7 @@ class _DetailReportPageState extends State<DetailReportPage> {
   @override
   Widget build(BuildContext context) {
     final penaltyStatus = widget.rental['penalty_payment_status'] ?? '-';
+    final serialNumber = widget.rental['serial_number'] ?? '-';
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -392,6 +393,33 @@ class _DetailReportPageState extends State<DetailReportPage> {
                         color: Colors.grey,
                       ),
                       textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    // Serial Number
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.qr_code,
+                              size: 16, color: Colors.grey),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Nomor Seri: $serialNumber',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 32),
 

@@ -142,6 +142,8 @@ class _RentalMonitoringPageState extends State<RentalMonitoringPage> {
                                 const SizedBox(height: 8),
                                 Text('Penyewa: ${rental['user_name']}'),
                                 Text('Telepon: ${rental['user_phone'] ?? '-'}'),
+                                Text(
+                                    'Nomor Seri: ${rental['serial_number'] ?? '-'}'),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Mulai: ${_formatDateTimeToJakarta(rental['start_time'])}',

@@ -116,6 +116,7 @@ class _DetailActivityPageState extends State<DetailActivityPage>
     final address = rentalDetails?['user_address'] ?? '-';
     final ktp = rentalDetails?['user_ktp_image'];
     final profile = rentalDetails?['user_profile_image'];
+    final serialNumber = rentalDetails?['serial_number'] ?? '-';
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -197,6 +198,14 @@ class _DetailActivityPageState extends State<DetailActivityPage>
                                   child: Text('Alamat: $address',
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.qr_code, size: 18),
+                              const SizedBox(width: 6),
+                              Text('Nomor Seri: $serialNumber'),
                             ],
                           ),
                           if (ktp != null && ktp != '') ...[
