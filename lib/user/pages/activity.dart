@@ -251,6 +251,11 @@ class _ActivityPageState extends State<ActivityPage> {
                         final isPenaltyPaid = penaltyStatus == 'paid';
                         final isSewaPaid = paymentStatus == 'paid';
                         final penaltyAmount = rental['penalty_amount'] ?? 0;
+                        final total = (rental['total_amount'] ?? 0) +
+                            (rental['penalty_amount'] ?? 0) +
+                            (rental['damage_penalty'] ?? 0) +
+                            (rental['lost_penalty'] ?? 0);
+                        final price = formatRupiah(total);
                         debugPrint(
                             'activity.dart | penalty_payment_status: ${penaltyStatus} | isPenaltyPaid: ${isPenaltyPaid} | payment_status: ${paymentStatus} | isSewaPaid: ${isSewaPaid}');
                         return GestureDetector(
@@ -301,7 +306,7 @@ class _ActivityPageState extends State<ActivityPage> {
                                         ),
                                       ),
                                       Text(
-                                        '${formatRupiah(rental['total_amount'])} • ${rental['remaining_minutes'] ?? 0} Min',
+                                        price,
                                         style: TextStyle(
                                           color: Colors.grey[600],
                                           fontSize: 14,

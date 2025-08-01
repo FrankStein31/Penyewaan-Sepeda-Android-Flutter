@@ -396,9 +396,12 @@ class _ReportPageState extends State<ReportPage> {
                                       ? '(Selesai)'
                                       : '';
 
-                              final amount = rental['penalty_amount'] > 0
-                                  ? 'IDR ${NumberFormat('#,###').format(rental['penalty_amount'])}'
-                                  : 'IDR ${NumberFormat('#,###').format(rental['total_amount'])}';
+                              final total = (rental['total_amount'] ?? 0) +
+                                  (rental['penalty_amount'] ?? 0) +
+                                  (rental['damage_penalty'] ?? 0) +
+                                  (rental['lost_penalty'] ?? 0);
+                              final amount =
+                                  'IDR ${NumberFormat('#,###').format(total)}';
 
                               final time = '${rental['rental_hours']} Jam';
                               final penaltyStatus =

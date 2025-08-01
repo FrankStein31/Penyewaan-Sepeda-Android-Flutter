@@ -70,6 +70,22 @@ class _DetailActivityPageState extends State<DetailActivityPage>
     try {
       setState(() => isLoading = true);
 
+      // Hentikan perhitungan denda sebelum membuat pembayaran
+      final stopPenaltyResponse = await http.post(
+        Uri.parse(
+            '${Config.baseUrl}/rentals/${rentalDetail!['id']}/stop-penalty'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (stopPenaltyResponse.statusCode != 200) {
+        debugPrint('Warning: Failed to stop penalty calculation');
+      } else {
+        debugPrint('Successfully stopped penalty calculation');
+      }
+
       final response = await http.post(
         Uri.parse(
             '${Config.baseUrl}/rentals/${rentalDetail!['id']}/penalty-payment'),

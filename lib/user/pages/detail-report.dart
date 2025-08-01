@@ -111,6 +111,22 @@ class _DetailReportPageState extends State<DetailReportPage> {
 
       setState(() => isProcessingPayment = true);
 
+      // Hentikan perhitungan denda sebelum membuat pembayaran
+      final stopPenaltyResponse = await http.post(
+        Uri.parse(
+            '${Config.baseUrl}/rentals/${widget.rental['id']}/stop-penalty'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (stopPenaltyResponse.statusCode != 200) {
+        debugPrint('Warning: Failed to stop penalty calculation');
+      } else {
+        debugPrint('Successfully stopped penalty calculation');
+      }
+
       // Create payment for penalty only
       final response = await http.post(
         Uri.parse(
